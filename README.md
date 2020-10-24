@@ -9,3 +9,12 @@
 * 玩家类 的 分数 记录在其PlayerState中，游戏的一轮时间记录在GameMode中。
 * 项目大多数使用c++实现的，而不是 blueprint visual script
 	* 蓝图类有：ui控件、弹丸、GameMode、靶子、武器。使用蓝图类是为了方便的修改类成员变量。
+	
+	
+###### 演示视频及 windows安装包
+
+```
+链接：https://pan.baidu.com/s/1fcjc4y4fayNp1N9UT5dyhg 
+提取码：9mtp 
+复制这段内容后打开百度网盘手机App，操作更方便哦
+```
