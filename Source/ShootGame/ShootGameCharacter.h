@@ -92,6 +92,11 @@ public:
 	float GetPlayerScore();
 
 	void UpdateScore(float);
+
+	/** 用于生成投射物的服务器函数。*/
+	UFUNCTION(Server, Reliable)
+		void HandleFire();
+	void HandleFire_Implementation();
 private:
 	void HoldWeapon();
 

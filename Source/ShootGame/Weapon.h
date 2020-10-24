@@ -29,11 +29,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 		TSubclassOf<AProjectile> MyProjectile;
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	float ProjectileForce;
-
-
+	  
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float ProjectileInitialDistance;
 
@@ -45,6 +41,11 @@ public:
 
 	void WeaponFire();
 	void SetWeaponPlayer(ACharacter*);
+
+	/** 用于生成投射物的服务器函数。*/
+	UFUNCTION(Server, Reliable)
+		void HandleFire();
+	void HandleFire_Implementation();
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* MyMesh;

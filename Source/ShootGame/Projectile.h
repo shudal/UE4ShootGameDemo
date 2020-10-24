@@ -30,6 +30,15 @@ public:
 	FORCEINLINE class UStaticMeshComponent* GetMesh() const { return MyMesh; }
 
 	void SetWeaponPlayer(ACharacter*);
+
+	// 在投射物撞击其他对象并爆炸时使用的粒子。
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	class UParticleSystem* ExplosionEffect;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UProjectileMovementComponent* ProjectileMovementComponent;
+	 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MyMesh", meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* MyMesh;

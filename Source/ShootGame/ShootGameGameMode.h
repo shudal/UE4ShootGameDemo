@@ -16,15 +16,16 @@ public:
 
 
 	virtual void BeginPlay() override;
-protected:
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ShootGame")
-	TSubclassOf<class UUserWidget> HUDWidgetClass;
+protected: 
 
 
-	// 只是为了让Ue4给我们自动管理内存
-	UPROPERTY()
-	class UUserWidget* CurrentWidget;
+	/** match duration */
+	UPROPERTY(EditAnywhere)
+	int32 RoundTime;
+
+	FTimerHandle TimerHandle_DefaultTimer;
+
+	void DefaultTimer();
 };
 
 

@@ -9,6 +9,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#include "MyPlayerState.h"
 //////////////////////////////////////////////////////////////////////////
 // AShootGameCharacter
 
@@ -59,7 +60,7 @@ void AShootGameCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &AShootGameCharacter::ShootTarget);
+	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &AShootGameCharacter::HandleFire);
 
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AShootGameCharacter::MoveForward);
@@ -157,6 +158,12 @@ void AShootGameCharacter::ShootTarget()
 		MyWeaponClass->WeaponFire();
 	}
 }
+ 
+
+void AShootGameCharacter::HandleFire_Implementation()
+{
+	ShootTarget();
+}
 
 void AShootGameCharacter::HoldWeapon() {
 	if (MyWeapon != NULL) {
@@ -188,4 +195,10 @@ float AShootGameCharacter::GetPlayerScore()
 void AShootGameCharacter::UpdateScore(float x) {
 	PlayerScore += x; 
 	UE_LOG(LogClass, Log, TEXT("Now player score:%f"), PlayerScore);
+	
+	
+	AMyPlayerState* mps = Cast<AMyPlayerState>(this->GetPlayerState());
+	if (mps != nullptr) {
+		mps->UpdateScore(x);
+	}
 }

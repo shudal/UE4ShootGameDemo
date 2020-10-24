@@ -3,7 +3,7 @@
 
 #include "Weapon.h"
 #include "Components/ArrowComponent.h"
-
+#include "GameFramework/Character.h"
 // Sets default values
 AWeapon::AWeapon()
 {
@@ -19,8 +19,7 @@ AWeapon::AWeapon()
 		UE_LOG(LogClass, Log, TEXT("xxxxxmy arrow initialize to  not null")); 
 	}
 	RootComponent = MyMesh;
-
-	ProjectileForce = 1000.0f; 
+	 
 	ProjectileInitialDistance = 30.0f;
 }
 
@@ -47,7 +46,7 @@ void AWeapon::WeaponFire()
 			SpawnParams.Owner = this;
 			SpawnParams.Instigator = GetInstigator();
 			FVector SpawnLoc = GetActorLocation();
-			FRotator SpawnRot(0.0f, 0.0f, 0.0f);
+			FRotator SpawnRot = player->GetControlRotation();
 			 
 			FRotator rot1 = GetActorRotation();
 			UE_LOG(LogClass, Log, TEXT("pitch %f yaw %f roll %f"), rot1.Pitch, rot1.Yaw, rot1.Roll);
@@ -66,8 +65,11 @@ void AWeapon::WeaponFire()
 				if (MyArrow != nullptr) {
 					UE_LOG(LogClass, Log, TEXT("myarrow is not null")); 
 					UE_LOG(LogClass, Log, TEXT("%f %f %f"), force.X, force.Y, force.Z); 
-					tmp->SetWeaponPlayer(player);
-					tmp->GetMesh()->AddForce((force) * ProjectileForce);
+					tmp->SetWeaponPlayer(player);  
+					//tmp->AttachToActor(player, FAttachmentTransformRules(EAttachmentRule::KeepWorld, false));
+					 
+					//tmp->FireInDirection(force);
+					//tmp->GetMesh()->AddForce((force) * 1000.0f);
 				}
 				else {
 					UE_LOG(LogClass, Log, TEXT("myarrow is null"));
@@ -81,4 +83,8 @@ void AWeapon::WeaponFire()
 
 void AWeapon::SetWeaponPlayer(ACharacter* NewPlayer) {
 	player = NewPlayer;
+}
+
+void AWeapon::HandleFire_Implementation()
+{
 }

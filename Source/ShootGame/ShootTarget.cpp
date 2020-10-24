@@ -2,6 +2,7 @@
 
 
 #include "ShootTarget.h"
+#include "MyGameState.h"
 
 // Sets default values
 AShootTarget::AShootTarget()
@@ -38,6 +39,18 @@ void AShootTarget::WasShot()
 
 float AShootTarget::GetScore()
 {
-	return TargetScore;
+	float ans = TargetScore;
+	AMyGameState* amgs = Cast<AMyGameState>(GetWorld()->GetGameState());
+	if (amgs != nullptr) {
+		if (amgs->GetRemainingTime() > 0) {
+			uint32 x = amgs->GetRemainingTime();
+			// such as 60
+			ans = 2.0 * x / 10;
+		}
+		else {
+			ans = 0;
+		}
+	}
+	return ans;
 }
 
