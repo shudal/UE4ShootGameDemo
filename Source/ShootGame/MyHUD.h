@@ -16,6 +16,44 @@ class SHOOTGAME_API UMyHUD : public UUserWidget
 	GENERATED_BODY()
 	
 
-public:
+private:
+	UPROPERTY()
+	class AMyPlayerState* mps;
+	class AMyGameState* MyGameState;
+
+protected:
+	void SetMyPlayerState();
+	 
+	class AShootGameCharacter* mchar;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+	class UListView* MListView;
+
+
+public: 
+	UMyHUD(const FObjectInitializer& ObjectInitializer);
+
+	UFUNCTION(BlueprintCallable)
 	FString GetScoreText();
+
+
+	UFUNCTION(BlueprintCallable)
+	float GetMyScore();
+
+	UFUNCTION(BlueprintCallable)
+		FString GetPersonalInfoText();
+
+	UFUNCTION(BlueprintCallable)
+		void MyPlayerShoot();
+
+
+	UFUNCTION(BlueprintCallable)
+		void SetScoreList();
+
+	bool Initialize() override;
+
+
+	FTimerHandle TimerHandle_DefaultTimer;
+
+	void DefaultTimer();
 };

@@ -11,7 +11,7 @@ class SHOOTGAME_API AProjectile : public AActor
 {
 	GENERATED_BODY()
 
-		// ÎäÆ÷Àà µÄ µ¯ÍèÀà
+		// æ­¦å™¨ç±» çš„ å¼¹ä¸¸ç±»
 
 public:
 	// Sets default values for this actor's properties
@@ -31,7 +31,7 @@ public:
 
 	void SetWeaponPlayer(ACharacter*);
 
-	// ÔÚÍ¶ÉäÎï×²»÷ÆäËû¶ÔÏó²¢±¬Õ¨Ê±Ê¹ÓÃµÄÁ£×Ó¡£
+	// åœ¨æŠ•å°„ç‰©æ’å‡»å…¶ä»–å¯¹è±¡å¹¶çˆ†ç‚¸æ—¶ä½¿ç”¨çš„ç²’å­ã€‚
 	UPROPERTY(EditAnywhere, Category = "Effects")
 	class UParticleSystem* ExplosionEffect;
 

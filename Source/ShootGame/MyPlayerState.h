@@ -18,13 +18,28 @@ protected:
 
 	UPROPERTY(EditAnywhere, Replicated)
 	float PlayerScore;
+
+
+	UPROPERTY(EditAnywhere, Replicated)
+	FString PlayerNick;
+	 
 public:
 	AMyPlayerState();
+	 
 
 	UFUNCTION(BlueprintPure, Category = "ShootGame")
 	float GetPlayerScore();
 
+
+	UFUNCTION(BlueprintPure, Category = "ShootGame")
+	FString GetPlayerNick();
+
+
+	UFUNCTION(Server, Reliable)
+		void SetPlayerNick(const FString &x);
+	void SetPlayerNick_Implementation(const FString &x); 
+
 	void UpdateScore(float);
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	 
 };

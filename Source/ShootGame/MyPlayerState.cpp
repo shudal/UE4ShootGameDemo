@@ -7,6 +7,7 @@
 
 AMyPlayerState::AMyPlayerState() {
 	PlayerScore = 0;
+	PlayerNick = TEXT("NoneName");
 }
 float AMyPlayerState::GetPlayerScore()
 {
@@ -23,4 +24,14 @@ void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AMyPlayerState, PlayerScore);
+
+	DOREPLIFETIME(AMyPlayerState, PlayerNick); 
+}
+
+FString AMyPlayerState::GetPlayerNick() { 
+	return PlayerNick;
+}
+
+void AMyPlayerState::SetPlayerNick_Implementation(const FString &x) {
+	PlayerNick = x;
 }

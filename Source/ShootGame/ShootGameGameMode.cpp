@@ -5,6 +5,9 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
 #include "MyGameState.h"
+#include "MySaveGame.h"
+#include "Kismet/GameplayStatics.h"
+
 
 AShootGameGameMode::AShootGameGameMode()
 {
@@ -24,18 +27,25 @@ void AShootGameGameMode::BeginPlay() {
 	AMyGameState* const MyGameState = Cast<AMyGameState>(GameState);
 	if (MyGameState) { 
 		MyGameState->SetRemainingTime(RoundTime);
+		MyGameState->SetGameStatus(1);
 	}
 
 
 	GetWorldTimerManager().SetTimer(TimerHandle_DefaultTimer, this, &AShootGameGameMode::DefaultTimer, GetWorldSettings()->GetEffectiveTimeDilation(), true);
 
+
 }
 
 void AShootGameGameMode::DefaultTimer()
 {
+	 
 	AMyGameState* const MyGameState = Cast<AMyGameState>(GameState);
 	if (MyGameState && MyGameState->GetRemainingTime() > 0) {
 		MyGameState->SetRemainingTime(MyGameState->GetRemainingTime() - 1);
 		UE_LOG(LogClass, Log, TEXT("Game Remaing Time: %d"), MyGameState->GetRemainingTime());
+	}
+	else {
+		MyGameState->SetGameStatus(2); 
+		
 	}
 }

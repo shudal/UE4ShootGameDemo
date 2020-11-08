@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "ShootGameCharacter.h"
 #include "MyPlayerState.h"
+#include "MyScoreItemData.h"
 
 void AMyGameState::SetRemainingTime(int32 NewRemainingTime)
 {
@@ -22,6 +23,7 @@ void  AMyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AMyGameState, RemainingTime);
+	DOREPLIFETIME(AMyGameState, MyGameStatus); 
 
 }
 
@@ -55,9 +57,13 @@ FString AMyGameState::GetRemaingTimeText() {
 	return ans;
 }
 AMyGameState::AMyGameState() { 
+
 }
 void AMyGameState::BeginPlay() {
 	Super::BeginPlay(); 
+	 
+	GetWorldTimerManager().SetTimer(TimerHandle_DefaultTimer, this, &AMyGameState::DefaultTimer, GetWorldSettings()->GetEffectiveTimeDilation(), true);
+
 }
 FString AMyGameState::GetScoreListText() { 
 
@@ -96,4 +102,52 @@ FString AMyGameState::GetScoreListText() {
 	}
 	 
 	return ans;
+}
+
+TArray<UMyScoreItemData*> AMyGameState::GetScoreItemArray() { 
+	PlayerRank.Empty();
+
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AShootGameCharacter::StaticClass(), FoundActors);
+	  
+
+	for (auto Actor : FoundActors) {
+		AShootGameCharacter* MyChar = Cast<AShootGameCharacter>(Actor);
+		if (MyChar) {
+			AMyPlayerState* mps = Cast<AMyPlayerState>(MyChar->GetPlayerState());
+			if (mps) {  
+				UMyScoreItemData* msid = NewObject<UMyScoreItemData>(this, UMyScoreItemData::StaticClass());
+				msid->SetPlayerName(mps->GetPlayerNick());
+				msid->SetPlayerScore(mps->GetPlayerScore());
+				msid->SetPlayerId(mps->GetPlayerId()); 
+				PlayerRank.AddUnique(msid);
+			}
+		}
+	}
+	PlayerRank.Sort([](const UMyScoreItemData & s1,const UMyScoreItemData & s2) {
+		return s1.GetPlayerScore() > s2.GetPlayerScore();
+	});
+	for (int32 i = 0; i < PlayerRank.Num(); i++) {
+		PlayerRank[i]->SetPlayerRank(i + 1);
+	}
+	return PlayerRank;
+}
+
+
+bool AMyGameState::IsGameFinished() {
+	if (MyGameStatus == GAME_STATUS_ENDED) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+void AMyGameState::SetGameStatus(int32 x) {
+	MyGameStatus = x;
+}
+
+
+void AMyGameState::DefaultTimer() { 
 }

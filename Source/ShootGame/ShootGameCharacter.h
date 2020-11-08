@@ -71,9 +71,6 @@ protected:
 	void BeginPlay() override;
 
 
-	UFUNCTION(BlueprintCallable, Category = "Shoot")
-		void ShootTarget();
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rot")
 		float rx;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rot")
@@ -97,6 +94,11 @@ public:
 	UFUNCTION(Server, Reliable)
 		void HandleFire();
 	void HandleFire_Implementation();
+
+
+
+	UFUNCTION(BlueprintCallable, Category = "Shoot")
+		void ShootTarget();
 private:
 	void HoldWeapon();
 

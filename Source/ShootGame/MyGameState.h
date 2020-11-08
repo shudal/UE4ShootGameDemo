@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameStateBase.h"
+#include "GameFramework/GameStateBase.h" 
+#include "MyScoreItemData.h"
 #include "MyGameState.generated.h"
 
 /**
@@ -19,11 +20,23 @@ protected:
 	int32 RemainingTime;
 
 	TArray<class AShootGameCharacter*> MyChars;
+
+	TArray<UMyScoreItemData*> PlayerRank;
+
+
+	UPROPERTY(EditAnywhere, Replicated)
+	int32 MyGameStatus = 0;
+
+	 
+
+	int32 GAME_STATUS_STARTED = 1;
+	int32 GAME_STATUS_ENDED = 2;
 public:
 	AMyGameState();
 
 	void BeginPlay() override;
 	void SetRemainingTime(int32 NewRemainingTime);
+	void SetGameStatus(int32 x);
 
 	UFUNCTION(BlueprintPure, Category = "ShootGame")
 		FString GetRemaingTimeText();
@@ -35,4 +48,14 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "ShootGame")
 		FString GetScoreListText();
+
+	 
+	TArray<UMyScoreItemData*> GetScoreItemArray();
+
+	bool IsGameFinished();
+
+
+	FTimerHandle TimerHandle_DefaultTimer;
+
+	void DefaultTimer();
 };
