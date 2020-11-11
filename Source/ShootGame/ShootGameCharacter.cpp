@@ -10,6 +10,8 @@
 #include "GameFramework/SpringArmComponent.h"
 
 #include "MyPlayerState.h"
+#include "Kismet/KismetMathLibrary.h"
+
 //////////////////////////////////////////////////////////////////////////
 // AShootGameCharacter
 
@@ -178,9 +180,11 @@ void AShootGameCharacter::HoldWeapon() {
 			SpawnRot.Pitch = ry;
 			SpawnRot.Roll = rx;
 
-			MyWeaponClass = World->SpawnActor<AWeapon>(MyWeapon, SpawnLoc, SpawnRot, SpawnParams);
+			SpawnRot = UKismetMathLibrary::MakeRotator(0, 0, 0);
 
-			MyWeaponClass->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::KeepWorld, false));
+			MyWeaponClass = World->SpawnActor<AWeapon>(MyWeapon, SpawnLoc, SpawnRot, SpawnParams);
+			 
+			MyWeaponClass->AttachToComponent(this->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), "ring_02_r_socket");
 			MyWeaponClass->SetWeaponPlayer(this);
 		}
 	}
@@ -201,4 +205,23 @@ void AShootGameCharacter::UpdateScore(float x) {
 	if (mps != nullptr) {
 		mps->UpdateScore(x);
 	}
+}
+
+
+void AShootGameCharacter::SetMyAnimYaw(float x) {
+	MyAnimYaw = x;
+}
+FRotator AShootGameCharacter::GetMyAnimRotator() {
+	return MyAnimRotator;
+}
+
+void AShootGameCharacter::Tick(float DeltaTime)
+{
+
+	Super::Tick(DeltaTime);
+	FRotator r1 = this->GetControlRotation() - GetActorRotation();
+	FRotator r2 = UKismetMathLibrary::RInterpTo(MyAnimRotator, r1, DeltaTime, 15.0);
+	MyAnimPitch = UKismetMathLibrary::ClampAngle(r2.Pitch, -90, 90);
+	MyAnimYaw = UKismetMathLibrary::ClampAngle(r2.Yaw, -90, 90);
+	MyAnimRotator = UKismetMathLibrary::MakeRotator(0, MyAnimPitch, MyAnimYaw);
 }

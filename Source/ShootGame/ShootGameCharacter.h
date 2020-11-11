@@ -30,6 +30,13 @@ public:
 		float BaseLookUpRate;
 
 	FVector GetFaceDirection();
+
+
+	UFUNCTION(BlueprintCallable)
+	void SetMyAnimYaw(float x);
+
+	UFUNCTION(BlueprintCallable)
+	FRotator GetMyAnimRotator();
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -59,6 +66,13 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+	float MyAnimYaw;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+		float MyAnimPitch;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+	FRotator MyAnimRotator;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -99,6 +113,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Shoot")
 		void ShootTarget();
+
+	void Tick(float DeltaTime) override;
 private:
 	void HoldWeapon();
 

@@ -4,6 +4,9 @@
 #include "Weapon.h"
 #include "Components/ArrowComponent.h"
 #include "GameFramework/Character.h"
+#include "ShootGameCharacter.h"
+
+#include "Kismet/KismetMathLibrary.h"
 // Sets default values
 AWeapon::AWeapon()
 {
@@ -27,14 +30,21 @@ AWeapon::AWeapon()
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-
+	if (player != nullptr) {
+		MyShootGameChar = Cast<AShootGameCharacter>(player);
+	}
 }
 
 // Called every frame
 void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (MyShootGameChar != nullptr) {
+		//SetActorRelativeRotation(UKismetMathLibrary::MakeRotator(0, MyShootGameChar->GetMyAnimRotator().Pitch, MyShootGameChar->GetMyAnimRotator().Yaw + 280));
+	}
+	else { 
+		MyShootGameChar = Cast<AShootGameCharacter>(player); 
+	}
 }
 
 void AWeapon::WeaponFire()
@@ -45,35 +55,36 @@ void AWeapon::WeaponFire()
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
 			SpawnParams.Instigator = GetInstigator();
-			FVector SpawnLoc = GetActorLocation();
-			FRotator SpawnRot = player->GetControlRotation();
+			FVector SpawnLoc;
+			FRotator SpawnRot;  
+
+			SpawnLoc = this->GetMesh()->GetSocketLocation("ProjectileSocket");
+			
+			if (MyShootGameChar != nullptr) {
+				SpawnRot = UKismetMathLibrary::FindLookAtRotation(GetMesh()->GetSocketLocation("ProjectileSocket"), GetMesh()->GetSocketLocation("ProjectileSocket2"));
+				//SpawnRot = MyArrow->GetComponentRotation();
+				//SpawnRot = GetActorRotation() + MyArrow->GetComponentRotation();
+				//SpawnRot = UKismetMathLibrary::RotatorFrom GetMesh()->GetSocketLocation("ProjectileSocket2") - GetMesh()->GetSocketLocation("ProjectileSocket");
+				//SpawnRot = MyShootGameChar->GetActorRotation() +  MyShootGameChar->GetMyAnimRotator();
+				//SpawnRot = MyShootGameChar->GetActorRotation() +  MyShootGameChar->GetMesh()->GetSocketRotation("ring_02_r_socket");
+			}
+
 			 
-			FRotator rot1 = GetActorRotation();
-			UE_LOG(LogClass, Log, TEXT("pitch %f yaw %f roll %f"), rot1.Pitch, rot1.Yaw, rot1.Roll);
-			FRotator rot = MyArrow->GetComponentRotation();
-			UE_LOG(LogClass, Log, TEXT("pitch %f yaw %f roll %f"), rot.Pitch, rot.Yaw, rot.Roll);
-			// actor的rotaion + 箭头的componentRotation就是最终的
-			rot = rot + rot1;
-
-			FVector force = rot.Vector();
-			SpawnLoc = SpawnLoc + force * ProjectileInitialDistance;
-
 			AProjectile* tmp = World->SpawnActor<AProjectile>(MyProjectile, SpawnLoc, SpawnRot, SpawnParams);
 
 			if (tmp != nullptr) {
+				tmp->SetWeaponPlayer(player);
+				//tmp->AttachToComponent(this->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), "ProjectileSocket");
+				/* 
 				UE_LOG(LogClass, Log, TEXT("projectile not null"));
 				if (MyArrow != nullptr) {
 					UE_LOG(LogClass, Log, TEXT("myarrow is not null")); 
 					UE_LOG(LogClass, Log, TEXT("%f %f %f"), force.X, force.Y, force.Z); 
-					tmp->SetWeaponPlayer(player);  
-					//tmp->AttachToActor(player, FAttachmentTransformRules(EAttachmentRule::KeepWorld, false));
-					 
-					//tmp->FireInDirection(force);
-					//tmp->GetMesh()->AddForce((force) * 1000.0f);
 				}
 				else {
 					UE_LOG(LogClass, Log, TEXT("myarrow is null"));
 				}
+				*/
 			}
 
 		}

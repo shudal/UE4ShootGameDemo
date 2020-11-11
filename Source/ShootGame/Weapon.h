@@ -34,6 +34,8 @@ protected:
 	float ProjectileInitialDistance;
 
 	ACharacter* player;
+	class AShootGameCharacter* MyShootGameChar;
+	 
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
