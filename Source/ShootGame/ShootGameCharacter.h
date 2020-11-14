@@ -37,6 +37,40 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FRotator GetMyAnimRotator();
+
+	UFUNCTION(BlueprintCallable)
+	void SetIsFreeView(bool x);
+	DECLARE_DELEGATE_OneParam(FSetIsFreeViewDelegate, bool);
+
+	/*
+	
+	UFUNCTION(Server, Reliable)
+		void HandleFire();
+	void HandleFire_Implementation();
+
+	*/
+
+	UFUNCTION(Server, Reliable)
+		void SetSkillName(const FString& x); 
+	void SetSkillName_Implementation(const FString& x);
+
+
+	void SetAnimRotator(FRotator x); 
+
+	  
+	UFUNCTION(BlueprintCallable)
+	void SetSkillNameWrapper(FString x);
+	DECLARE_DELEGATE_OneParam(FStringDelegate, FString);
+	UFUNCTION(BlueprintCallable)
+		FString GetSkillName();
+
+
+	UFUNCTION(BlueprintCallable)
+	bool IsFreeView();
+
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -73,6 +107,23 @@ protected:
 		float MyAnimPitch;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
 	FRotator MyAnimRotator;
+	UPROPERTY(ReplicatedUsing=OnRep_FakeAnimRotator)
+	FRotator FakeAnimRotator;
+	UFUNCTION()
+	void OnRep_FakeAnimRotator();
+	int32 xcount;
+	
+
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+	bool bIsFreeView;
+
+	UPROPERTY(Replicated)
+	FString MySkillName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+	bool IsAI;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -93,6 +144,9 @@ protected:
 		float rz;
 
 	float PlayerScore;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+	bool bMyMeleeDown;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -109,7 +163,12 @@ public:
 		void HandleFire();
 	void HandleFire_Implementation();
 
-
+	UFUNCTION(BlueprintCallable, Category = "Shoot")
+	void  HandleMeleeDown();
+	UFUNCTION(BlueprintCallable, Category = "Shoot")
+		void  HandleMeleeUp();
+	UFUNCTION(BlueprintCallable)
+		bool  IsMelee();
 
 	UFUNCTION(BlueprintCallable, Category = "Shoot")
 		void ShootTarget();

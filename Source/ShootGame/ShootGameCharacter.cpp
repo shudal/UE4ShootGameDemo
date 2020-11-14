@@ -11,6 +11,7 @@
 
 #include "MyPlayerState.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AShootGameCharacter
@@ -50,6 +51,8 @@ AShootGameCharacter::AShootGameCharacter()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
 	PlayerScore = 0.0f;
+	xcount = 0;
+	IsAI = false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,7 +66,22 @@ void AShootGameCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &AShootGameCharacter::HandleFire);
+	PlayerInputComponent->BindAction<FSetIsFreeViewDelegate>("FreeView", IE_Pressed, this, &AShootGameCharacter::SetIsFreeView, true);
+	PlayerInputComponent->BindAction<FSetIsFreeViewDelegate>("FreeView", IE_Released, this, &AShootGameCharacter::SetIsFreeView, false);
 
+
+	//PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AShootGameCharacter::HandleMeleeDown);
+	//PlayerInputComponent->BindAction("Melee", IE_Released, this, &AShootGameCharacter::HandleMeleeUp);
+
+	FString tmpx = "Melee";
+	tmpx = "Skill0"; PlayerInputComponent->BindAction<FStringDelegate>("Melee", IE_Pressed, this, &AShootGameCharacter::SetSkillNameWrapper, tmpx);
+	tmpx = "Skill1"; PlayerInputComponent->BindAction<FStringDelegate>("Skill1", IE_Pressed, this, &AShootGameCharacter::SetSkillNameWrapper, tmpx);
+	tmpx = "Skill2"; PlayerInputComponent->BindAction<FStringDelegate>("Skill2", IE_Pressed, this, &AShootGameCharacter::SetSkillNameWrapper, tmpx);
+	tmpx = "Skill3"; PlayerInputComponent->BindAction<FStringDelegate>("Skill3", IE_Pressed, this, &AShootGameCharacter::SetSkillNameWrapper, tmpx);
+	tmpx = "None"; PlayerInputComponent->BindAction<FStringDelegate>("Melee", IE_Released, this, &AShootGameCharacter::SetSkillNameWrapper, tmpx);
+	tmpx = "None"; PlayerInputComponent->BindAction<FStringDelegate>("Skill1", IE_Released, this, &AShootGameCharacter::SetSkillNameWrapper, tmpx);
+	tmpx = "None"; PlayerInputComponent->BindAction<FStringDelegate>("Skill2", IE_Released, this, &AShootGameCharacter::SetSkillNameWrapper, tmpx);
+	tmpx = "None"; PlayerInputComponent->BindAction<FStringDelegate>("Skill3", IE_Released, this, &AShootGameCharacter::SetSkillNameWrapper, tmpx);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AShootGameCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AShootGameCharacter::MoveRight);
@@ -82,6 +100,9 @@ void AShootGameCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AShootGameCharacter::OnResetVR);
+
+
+	//UE_LOG(LogClass, Log, TEXT("mjhai i'am %s, is locally controlled?%s"), *GetName(), (IsAI ? "yes" : "no"));
 }
 
 
@@ -105,6 +126,7 @@ void AShootGameCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Lo
 {
 		StopJumping();
 }
+
 
 void AShootGameCharacter::TurnAtRate(float Rate)
 {
@@ -152,6 +174,11 @@ void AShootGameCharacter::BeginPlay() {
 	Super::BeginPlay();
 
 	HoldWeapon();
+
+	FString x = "Yes";
+	if (!IsLocallyControlled()) {
+		x = "No";
+	} 
 }
 
 void AShootGameCharacter::ShootTarget()
@@ -167,6 +194,18 @@ void AShootGameCharacter::HandleFire_Implementation()
 	ShootTarget();
 }
 
+void AShootGameCharacter::HandleMeleeDown()
+{
+	bMyMeleeDown = true;
+}
+void AShootGameCharacter::HandleMeleeUp()
+{
+	bMyMeleeDown = false;
+}
+
+bool  AShootGameCharacter::IsMelee() {
+	return bMyMeleeDown;
+}
 void AShootGameCharacter::HoldWeapon() {
 	if (MyWeapon != NULL) {
 		UWorld* const World = GetWorld();
@@ -212,16 +251,123 @@ void AShootGameCharacter::SetMyAnimYaw(float x) {
 	MyAnimYaw = x;
 }
 FRotator AShootGameCharacter::GetMyAnimRotator() {
-	return MyAnimRotator;
+	FRotator ans;
+
+	// 是服务器 或 是本地控制
+	if (IsAI) {
+		ans = UKismetMathLibrary::MakeRotator(0, -21, 0);
+	} else if (GetLocalRole() == ROLE_Authority || IsLocallyControlled()) {
+		ans = MyAnimRotator;
+	}
+	else {
+		ans = FakeAnimRotator;
+	}
+	return ans;
+}
+
+void AShootGameCharacter::SetIsFreeView(bool x)
+{
+	bIsFreeView = x;
+}
+
+void AShootGameCharacter::SetSkillName_Implementation(const FString& x)
+{
+	MySkillName = x;
+}
+
+void AShootGameCharacter::SetAnimRotator(FRotator x)
+{ 
+	MyAnimRotator = x; 
+
+
+	if (GetLocalRole() == ROLE_Authority && FakeAnimRotator != MyAnimRotator) {
+		FakeAnimRotator = UKismetMathLibrary::MakeRotator(MyAnimRotator.Roll, MyAnimRotator.Pitch + 90, MyAnimRotator.Yaw + 90);
+		//UE_LOG(LogClass, Log, TEXT("mtest i'am server, i'am set fakeanimrotator to animrotator, animrotator(pitch,yaw,roll)=(%f,%f,%f),fakeanimrotator(pitch,yaw,roll)=(%f,%f,%f)"), MyAnimRotator.Pitch, MyAnimRotator.Yaw, MyAnimRotator.Roll, FakeAnimRotator.Pitch, FakeAnimRotator.Yaw, FakeAnimRotator.Roll);
+
+	}
+	/* 
+	xcount++;
+	if (xcount == 30) {
+		xcount = 0;
+		if (GetWorld() && GetWorld()->IsServer() && FakeAnimRotator != MyAnimRotator) { 
+			FakeAnimRotator = MyAnimRotator;
+			UE_LOG(LogClass, Log, TEXT("mtest i'am server, i'am set fakeanimrotator to animrotator, animrotator(pitch,yaw,roll)=(%f,%f,%f),fakeanimrotator(pitch,yaw,roll)=(%f,%f,%f)"), MyAnimRotator.Pitch, MyAnimRotator.Yaw, MyAnimRotator.Roll, FakeAnimRotator.Pitch, FakeAnimRotator.Yaw, FakeAnimRotator.Roll);
+
+		}
+	}
+	*/
+} 
+
+void AShootGameCharacter::SetSkillNameWrapper(FString x)
+{
+	SetSkillName(x);
+}
+
+FString AShootGameCharacter::GetSkillName()
+{
+	return MySkillName;
 }
 
 void AShootGameCharacter::Tick(float DeltaTime)
 {
 
 	Super::Tick(DeltaTime);
-	FRotator r1 = this->GetControlRotation() - GetActorRotation();
-	FRotator r2 = UKismetMathLibrary::RInterpTo(MyAnimRotator, r1, DeltaTime, 15.0);
-	MyAnimPitch = UKismetMathLibrary::ClampAngle(r2.Pitch, -90, 90);
-	MyAnimYaw = UKismetMathLibrary::ClampAngle(r2.Yaw, -90, 90);
-	MyAnimRotator = UKismetMathLibrary::MakeRotator(0, MyAnimPitch, MyAnimYaw);
+	   
+	if (GetLocalRole() == ROLE_Authority || IsLocallyControlled()) { 
+		FRotator r1 = this->GetControlRotation() - GetActorRotation();
+		FRotator r2 = UKismetMathLibrary::RInterpTo(MyAnimRotator, r1, DeltaTime, 15.0);
+		MyAnimPitch = UKismetMathLibrary::ClampAngle(r2.Pitch, -90, 90);
+		MyAnimYaw = UKismetMathLibrary::ClampAngle(r2.Yaw, -90, 90);
+		FRotator x = UKismetMathLibrary::MakeRotator(0, MyAnimPitch, MyAnimYaw);
+
+		SetAnimRotator(x);
+	} 
+	/*
+	
+	if (IsLocallyControlled() || (GetWorld() && GetWorld()->IsServer()) ) {
+		SetAnimRotator(x);
+
+		if (GetWorld() && GetWorld()->IsServer()) {
+			if (!IsLocallyControlled()) { 
+				UE_LOG(LogClass, Log, TEXT("mtest i'am server, this player not locally controllerd,animrotator(pitch,yaw,roll)=(%f,%f,%f)"), MyAnimRotator.Pitch, MyAnimRotator.Yaw, MyAnimRotator.Roll);
+			}
+			else { 
+				UE_LOG(LogClass, Log, TEXT("mtest i'am server, this player is locally controllerd"));
+			}
+		}
+	}
+	*/
+		
+	 
+}
+
+bool AShootGameCharacter::IsFreeView() {
+	return bIsFreeView;
+}
+
+void AShootGameCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AShootGameCharacter, MySkillName);
+	DOREPLIFETIME(AShootGameCharacter, FakeAnimRotator);
+}
+
+void AShootGameCharacter::OnRep_FakeAnimRotator()
+{
+	FakeAnimRotator = UKismetMathLibrary::MakeRotator(FakeAnimRotator.Roll, FakeAnimRotator.Pitch - 90, FakeAnimRotator.Yaw - 90);;
+	//UE_LOG(LogClass, Log, TEXT("mtest i'am clientr, i'am got fakeanimrotator(pitch,yaw,roll)=(%f,%f,%f)"), FakeAnimRotator.Pitch, FakeAnimRotator.Yaw, FakeAnimRotator.Roll);
+	/* 
+	if (GetWorld()) {
+		if (GetWorld()->IsServer()) {
+			UE_LOG(LogClass, Log, TEXT("mtest i'am server,i am onrep_fakeanimrotator"));
+		}
+		else {  
+			UE_LOG(LogClass, Log, TEXT("mtest i'am client,i am onrep_fakeanimrotator"));
+		}
+	}
+	if (!IsLocallyControlled()) {
+		UE_LOG(LogClass, Log, TEXT("mtest i'am client, i'am set animrotator to fakeanimrotator, fakeanimrotator(pitch,yaw,roll)=(%f,%f,%f)"), FakeAnimRotator.Pitch, FakeAnimRotator.Yaw, FakeAnimRotator.Roll);
+		MyAnimRotator = FakeAnimRotator;
+	}
+	*/
 }
