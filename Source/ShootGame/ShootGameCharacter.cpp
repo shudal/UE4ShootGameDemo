@@ -52,7 +52,7 @@ AShootGameCharacter::AShootGameCharacter()
 
 	PlayerScore = 0.0f;
 	xcount = 0;
-	IsAI = false;
+	bIsAI = false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -174,11 +174,12 @@ void AShootGameCharacter::BeginPlay() {
 	Super::BeginPlay();
 
 	HoldWeapon();
+	 
 
-	FString x = "Yes";
-	if (!IsLocallyControlled()) {
-		x = "No";
-	} 
+
+	//GetMesh()->OnComponentHit.AddDynamic(this, &AShootGameCharacter::OnMyHit);
+
+
 }
 
 void AShootGameCharacter::ShootTarget()
@@ -254,7 +255,7 @@ FRotator AShootGameCharacter::GetMyAnimRotator() {
 	FRotator ans;
 
 	// 是服务器 或 是本地控制
-	if (IsAI) {
+	if (bIsAI) {
 		ans = UKismetMathLibrary::MakeRotator(0, -21, 0);
 	} else if (GetLocalRole() == ROLE_Authority || IsLocallyControlled()) {
 		ans = MyAnimRotator;
@@ -370,4 +371,38 @@ void AShootGameCharacter::OnRep_FakeAnimRotator()
 		MyAnimRotator = FakeAnimRotator;
 	}
 	*/
+}
+
+bool AShootGameCharacter::IsAI()
+{
+	return bIsAI;
+}
+/*
+void AShootGameCharacter::OnMyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit) {
+	AShootGameCharacter* otherCharacter = Cast<AShootGameCharacter>(OtherActor);
+	if (otherCharacter != nullptr) {
+		if (IsAI()) {
+			int32 maxski = 3;
+			static int32 lastSkill = 0;
+			// [0,maxski)
+			lastSkill = (lastSkill + 1) % maxski;
+			switch (lastSkill) {
+			case 0:
+				SetSkillNameWrapper("Skill0");
+				break;
+			case 1:
+				SetSkillNameWrapper("Skill1");
+				break;
+			case 2:
+				SetSkillNameWrapper("Skill2");
+				break;
+			}
+			GetWorldTimerManager().SetTimer(TimerHandle_DefaultTimer, this, &AShootGameCharacter::DefaultTimer, GetWorldSettings()->GetEffectiveTimeDilation(), false);
+
+		}
+	}
+}
+*/
+void  AShootGameCharacter::DefaultTimer() {
+	SetSkillNameWrapper("None");
 }

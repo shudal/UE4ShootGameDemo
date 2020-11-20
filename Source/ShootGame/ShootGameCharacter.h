@@ -123,7 +123,7 @@ protected:
 	FString MySkillName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
-	bool IsAI;
+	bool bIsAI;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -174,6 +174,15 @@ public:
 		void ShootTarget();
 
 	void Tick(float DeltaTime) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Shoot")
+	bool IsAI();
+	//UFUNCTION()
+	//	void OnMyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+
+	FTimerHandle TimerHandle_DefaultTimer;
+
+	void DefaultTimer();
 private:
 	void HoldWeapon();
 
