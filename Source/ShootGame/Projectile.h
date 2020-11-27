@@ -23,6 +23,18 @@ protected:
 
 	UPROPERTY()
 	ACharacter* player;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+		float MIN_VELOCITY_TO_EXPLODE;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+		float EXPLODE_RADIUS;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+		float EXPLODE_STRENGTH;
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -39,6 +51,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UProjectileMovementComponent* ProjectileMovementComponent;
 	 
+	void SetLifeStarted(bool x);
+
+	void MyBoom();
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MyMesh", meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* MyMesh;
@@ -46,4 +61,5 @@ private:
 	UFUNCTION()
 	void OnMyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
+	bool LifeStarted;
 };

@@ -8,6 +8,51 @@
 #include "Weapon.generated.h"
 
 
+UENUM(BlueprintType)
+enum class EWeaponType : uint8 {
+	WT_Projectile,
+WT_Ray
+};
+
+UENUM(BlueprintType)
+enum class EWeaponKind : uint8 {
+	WK_RayGun,
+	WK_ProjectileGun
+};
+
+USTRUCT(BlueprintType)
+struct FWeaponData
+{
+	GENERATED_BODY()
+
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FString WeaponName;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		EWeaponKind MyWeaponKind;
+
+	// EWeaponKind和WeaponStaticClass是一一对应关系
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) 
+		TSubclassOf<class AWeapon> WeaponStaticClass;
+
+
+	bool operator==(const FWeaponData& rhs) const {
+		if (MyWeaponKind == rhs.MyWeaponKind) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	FString ToString() { 
+		FString s = FString::Printf(TEXT("WeaponName:%s,WeaponKind:%d"), *WeaponName, (uint8)MyWeaponKind);
+		return s;
+	}
+};
+
 UCLASS()
 class SHOOTGAME_API AWeapon : public AActor 
 {
@@ -36,6 +81,18 @@ protected:
 	ACharacter* player;
 	class AShootGameCharacter* MyShootGameChar;
 	 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	EWeaponType MyWeaponType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	FWeaponData MyWeaponData;
+	 
+	UParticleSystem* ShootEffect;
+	UParticleSystemComponent* ShootEffectComponent;
+	USoundBase* ShootImpactMeshSound; 
+	USoundBase* ShootImpactDefaultSound;
+	USoundBase* ShootImpactMetalSound;
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -48,7 +105,21 @@ public:
 	UFUNCTION(Server, Reliable)
 		void HandleFire();
 	void HandleFire_Implementation();
+	 
+
+	UFUNCTION(BlueprintCallable)
+	void ProcessHitResult(const TArray<FHitResult>& HitResults);
+
+
+	FTimerHandle TimerHandle_DefaultTimer;
+
+	void DefaultTimer();
+	 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* MyMesh;
+	 
+	TArray<UParticleSystemComponent*> SpawnedEffects;
 };
+
+ 

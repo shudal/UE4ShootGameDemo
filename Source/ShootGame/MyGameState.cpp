@@ -88,7 +88,8 @@ FString AMyGameState::GetScoreListText() {
 			AMyPlayerState* mps = Cast<AMyPlayerState>(MyChar->GetPlayerState());
 			if (mps) {
 				float  sco = mps->GetPlayerScore();
-				FString s = FString::Printf(TEXT("Local Player Name: %s, Score: %f\n"), *MyChar->GetName(), sco);
+				auto playerNick = mps->GetPlayerNick();
+				FString s = FString::Printf(TEXT("Local Player Nick: %s, Score: %f\n"), *playerNick, sco);
 				arrs.Add(S1(sco, s));
 			} 
 		}

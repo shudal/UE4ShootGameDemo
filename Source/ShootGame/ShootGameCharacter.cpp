@@ -11,7 +11,8 @@
 
 #include "MyPlayerState.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Net/UnrealNetwork.h"
+#include "Net/UnrealNetwork.h" 
+#include "Pickups/Pickup_Gun.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AShootGameCharacter
@@ -69,6 +70,9 @@ void AShootGameCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction<FSetIsFreeViewDelegate>("FreeView", IE_Pressed, this, &AShootGameCharacter::SetIsFreeView, true);
 	PlayerInputComponent->BindAction<FSetIsFreeViewDelegate>("FreeView", IE_Released, this, &AShootGameCharacter::SetIsFreeView, false);
 
+	PlayerInputComponent->BindAction("Pick", IE_Pressed, this, &AShootGameCharacter::PickupThing); 
+	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, this, &AShootGameCharacter::ChangeWeapon);
+	
 
 	//PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AShootGameCharacter::HandleMeleeDown);
 	//PlayerInputComponent->BindAction("Melee", IE_Released, this, &AShootGameCharacter::HandleMeleeUp);
@@ -114,17 +118,17 @@ FVector AShootGameCharacter::GetFaceDirection()
 
 void AShootGameCharacter::OnResetVR()
 {
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
+UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 }
 
 void AShootGameCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		Jump();
+	Jump();
 }
 
 void AShootGameCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		StopJumping();
+	StopJumping();
 }
 
 
@@ -156,12 +160,12 @@ void AShootGameCharacter::MoveForward(float Value)
 
 void AShootGameCharacter::MoveRight(float Value)
 {
-	if ( (Controller != NULL) && (Value != 0.0f) )
+	if ((Controller != NULL) && (Value != 0.0f))
 	{
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
-	
+
 		// get right vector 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
@@ -173,8 +177,11 @@ void AShootGameCharacter::MoveRight(float Value)
 void AShootGameCharacter::BeginPlay() {
 	Super::BeginPlay();
 
-	HoldWeapon();
-	 
+
+	MyPlayerState = Cast<AMyPlayerState>(GetPlayerState());
+
+	//HoldWeapon();
+
 
 
 	//GetMesh()->OnComponentHit.AddDynamic(this, &AShootGameCharacter::OnMyHit);
@@ -188,7 +195,7 @@ void AShootGameCharacter::ShootTarget()
 		MyWeaponClass->WeaponFire();
 	}
 }
- 
+
 
 void AShootGameCharacter::HandleFire_Implementation()
 {
@@ -206,6 +213,37 @@ void AShootGameCharacter::HandleMeleeUp()
 
 bool  AShootGameCharacter::IsMelee() {
 	return bMyMeleeDown;
+}
+void AShootGameCharacter::ChangeWeapon()
+{
+	if (MyWeaponClass != nullptr) {
+		MyWeaponClass->Destroy();
+		MyWeaponClass = nullptr;
+	}
+	if (MyPlayerState != nullptr) {
+		int len = MyPlayerState->GetWeaponData().Num();
+		if(len > 0){
+			int32 i = MyPlayerState->GetNowWeaponIndex();
+			i = (i + 1) % len;
+
+			FWeaponData& wd = MyPlayerState->GetWeaponData()[i];
+
+			UWorld* const World = GetWorld();
+			if (World) {
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.Owner = this;
+				SpawnParams.Instigator = GetInstigator();
+				FVector SpawnLoc = GetMesh()->GetSocketLocation("ring_01_r");
+				FRotator SpawnRot = UKismetMathLibrary::MakeRotator(0, 0, 0);
+
+				MyWeaponClass = World->SpawnActor<AWeapon>(wd.WeaponStaticClass, SpawnLoc, SpawnRot, SpawnParams);
+				MyWeaponClass->AttachToComponent(this->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), "ring_02_r_socket");
+				MyWeaponClass->SetWeaponPlayer(this);
+			} 
+
+			MyPlayerState->SetNowWeaponIndex(i);
+		}
+	}
 }
 void AShootGameCharacter::HoldWeapon() {
 	if (MyWeapon != NULL) {
@@ -322,23 +360,7 @@ void AShootGameCharacter::Tick(float DeltaTime)
 		FRotator x = UKismetMathLibrary::MakeRotator(0, MyAnimPitch, MyAnimYaw);
 
 		SetAnimRotator(x);
-	} 
-	/*
-	
-	if (IsLocallyControlled() || (GetWorld() && GetWorld()->IsServer()) ) {
-		SetAnimRotator(x);
-
-		if (GetWorld() && GetWorld()->IsServer()) {
-			if (!IsLocallyControlled()) { 
-				UE_LOG(LogClass, Log, TEXT("mtest i'am server, this player not locally controllerd,animrotator(pitch,yaw,roll)=(%f,%f,%f)"), MyAnimRotator.Pitch, MyAnimRotator.Yaw, MyAnimRotator.Roll);
-			}
-			else { 
-				UE_LOG(LogClass, Log, TEXT("mtest i'am server, this player is locally controllerd"));
-			}
-		}
-	}
-	*/
-		
+	}  
 	 
 }
 
@@ -405,4 +427,65 @@ void AShootGameCharacter::OnMyHit(UPrimitiveComponent* HitComponent, AActor* Oth
 */
 void  AShootGameCharacter::DefaultTimer() {
 	SetSkillNameWrapper("None");
+}
+
+void AShootGameCharacter::PickupThing() { 
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		ClientPickupThing();
+	}
+	else
+	{
+		ServerPickupThing();
+	}
+
+}
+
+
+void AShootGameCharacter::ServerPickupThing_Implementation() {
+	PickupThing();
+}
+
+void AShootGameCharacter::ClientPickupThing_Implementation() {
+	UE_LOG(LogClass, Log, TEXT("mphy pick up start"));
+
+	auto MyWorld = GetWorld();
+	if (MyWorld != nullptr) {
+		FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
+		RV_TraceParams.bTraceComplex = false;
+		RV_TraceParams.bReturnPhysicalMaterial = false;
+
+		FCollisionObjectQueryParams coqp;
+		coqp.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+		coqp.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
+		coqp.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldDynamic);
+
+		FCollisionShape cs = FCollisionShape::MakeSphere(PICK_DISTANCE);
+
+		TArray<FOverlapResult> Overlaps;
+		bool everOverlaped = MyWorld->OverlapMultiByObjectType(Overlaps, GetActorLocation(), FQuat(), coqp, cs, RV_TraceParams);
+
+		UE_LOG(LogClass, Log, TEXT("mphy pick ever overlaped:%d"), everOverlaped ? 1 : 0);
+		if (everOverlaped) {
+
+			UE_LOG(LogClass, Log, TEXT("mphy pick overlaped count"), Overlaps.Num());
+			for (int i = 0; i < Overlaps.Num(); i++) {
+				FOverlapResult& or = Overlaps[i];
+				AActor* ac = or .GetActor();
+				if (ac != nullptr) {
+					APickup_Gun* pg = Cast<APickup_Gun>(ac);
+					if (pg != nullptr) {
+						FWeaponData wd = pg->GetWeaponData();
+						UE_LOG(LogClass, Log, TEXT("mphy pick overlaped gun,info:%s"), *wd.ToString());
+						pg->BePicked();
+						UE_LOG(LogClass, Log, TEXT("mphy is server?%d,player state is null?%d"), GetLocalRole() == ROLE_Authority ? 1 : 0, MyPlayerState == nullptr ? 1 : 0);
+
+						if (MyPlayerState != nullptr) {
+							MyPlayerState->GetWeaponData().AddUnique(pg->GetWeaponData());
+						}
+					}
+				}
+			}
+		}
+	}
 }

@@ -9,7 +9,9 @@
 
 #include "Kismet/GameplayStatics.h" 
 #include "Particles/ParticleSystem.h"
-#include "UObject/ConstructorHelpers.h"
+#include "UObject/ConstructorHelpers.h" 
+#include "Kismet/KismetMathLibrary.h"
+
 // Sets default values
 AProjectile::AProjectile()
 {
@@ -20,8 +22,8 @@ AProjectile::AProjectile()
 
 
 	MyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MyMesh"));
-	RootComponent = MyMesh; 
-	 
+	RootComponent = MyMesh;
+
 	static ConstructorHelpers::FObjectFinder<UParticleSystem> DefaultExplosionEffect(TEXT("/Game/StarterContent/Particles/P_Explosion.P_Explosion"));
 	if (DefaultExplosionEffect.Succeeded())
 	{
@@ -31,11 +33,16 @@ AProjectile::AProjectile()
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovementComponent->SetUpdatedComponent(RootComponent);
 
-	float tmpx = 2000.0f; 
+	float tmpx = 2000.0f;
 	ProjectileMovementComponent->InitialSpeed = tmpx;
 	ProjectileMovementComponent->MaxSpeed = tmpx;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;  
+	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+
+	LifeStarted = false;
+	MIN_VELOCITY_TO_EXPLODE = 0.1; 
+	EXPLODE_RADIUS = 2;
+	EXPLODE_STRENGTH = 100;
 }
 
 // Called when the game starts or when spawned
@@ -51,16 +58,25 @@ void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	float MyVelo = GetVelocity().Size();
+
+	//UE_LOG(LogClass, Log, TEXT("mphy projectile speed:%f"), MyVelo);
+	if (LifeStarted && MyVelo <= MIN_VELOCITY_TO_EXPLODE) {
+		MyBoom();
+	}
 }
 
 void AProjectile::SetWeaponPlayer(ACharacter* NewPlayer)
 {
 	player = NewPlayer;
 }
- 
+
 void AProjectile::OnMyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit) {
 	UE_LOG(LogClass, Log, TEXT("xxxxx hit"));
 
+	bool EverDesed = false;
+
+	// °Ð×Ó
 	AShootTarget* st = Cast<AShootTarget>(OtherActor);
 	if (st != nullptr) {
 		UE_LOG(LogClass, Log, TEXT("xxxxx hit target"));
@@ -70,8 +86,77 @@ void AProjectile::OnMyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		}
 	}
 
+	// ½ÇÉ«
+	ACharacter* hitedchar = Cast<ACharacter>(OtherActor);
+	if (hitedchar != nullptr) {
+		MyBoom();
+		EverDesed = true;
+	}
+
+	if (EverDesed == false) {
+
+	}
+}
+
+void AProjectile::SetLifeStarted(bool x) {
+	LifeStarted = x;
+}
+
+void AProjectile::MyBoom()
+{
 	FVector spawnLocation = GetActorLocation();
 	UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionEffect, spawnLocation, FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
+
+
+	auto MyWorld = GetWorld();
+	if (MyWorld != nullptr) {
+
+		FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
+		RV_TraceParams.bTraceComplex = false;
+		RV_TraceParams.bReturnPhysicalMaterial = false;
+
+		FCollisionObjectQueryParams coqp;
+		coqp.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+		coqp.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
+		coqp.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldDynamic);
+
+		FCollisionShape cs = FCollisionShape::MakeSphere(EXPLODE_RADIUS);
+
+		TArray<FOverlapResult> Overlaps;
+		bool everOverlaped = MyWorld->OverlapMultiByObjectType(Overlaps, GetActorLocation(), FQuat(), coqp, cs, RV_TraceParams);
+		
+		FVector ExplodeOriLoc = GetActorLocation();
+		UE_LOG(LogClass, Log, TEXT("mphy ever overlaped:%d"), everOverlaped?1:0);
+		if (everOverlaped) {
+			for (int i = 0; i < Overlaps.Num(); i++) {
+				FOverlapResult & ov = Overlaps[i];
+				AActor* ac = ov.GetActor();
+
+				if (ac != nullptr) { 
+					TArray<UStaticMeshComponent*> Components;
+					ac->GetComponents<UStaticMeshComponent>(Components);
+					
+					FVector Forc = UKismetMathLibrary::GetForwardVector(UKismetMathLibrary::FindLookAtRotation(ExplodeOriLoc, ac->GetActorLocation()));
+					Forc.Normalize();
+					Forc *= EXPLODE_STRENGTH;
+
+					UE_LOG(LogClass, Log, TEXT("mphy overlaped components count:%d"), Components.Num());
+					for (int32 k = 0; k < Components.Num(); k++)
+					{
+						UStaticMeshComponent* smc = Components[k];
+						
+						UE_LOG(LogClass, Log, TEXT("mphy overlaped components index %d, simulate physuics? %d"), k, smc->IsSimulatingPhysics() ? 1 : 0);
+						if (smc->IsSimulatingPhysics()) {
+							smc->AddImpulse(Forc);
+
+						}
+						//smc->AddForce(Forc);
+						//smc->AddRadialForce(ExplodeOriLoc, EXPLODE_RADIUS, EXPLODE_STRENGTH, ERadialImpulseFalloff::RIF_Linear);
+					}
+				}
+			}
+		}
+	}
+
 	Destroy();
 }
- 

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "Weapon.h"
 #include "MyPlayerState.generated.h"
 
 /**
@@ -23,6 +24,8 @@ protected:
 	UPROPERTY(EditAnywhere, Replicated)
 	FString PlayerNick;
 	 
+	TArray<FWeaponData> WeaponData;
+	int32 NowWeaponIndex;
 public:
 	AMyPlayerState();
 	 
@@ -42,4 +45,15 @@ public:
 	void UpdateScore(float);
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	 
+	TArray<FWeaponData>& GetWeaponData();
+
+
+	UFUNCTION(BlueprintCallable)
+		int32 GetNowWeaponIndex();
+
+
+	UFUNCTION(BlueprintCallable)
+		void SetNowWeaponIndex(int32 x);
+
+
 };

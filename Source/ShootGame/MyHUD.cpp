@@ -34,25 +34,25 @@ bool UMyHUD::Initialize() {
 	// ---
 	if (UMySaveGame* LoadedGame = Cast<UMySaveGame>(UGameplayStatics::LoadGameFromSlot("MySaveGame", 0)))
 	{
-		// 操作成功，LoadedGame现在将包含较早前保存的数据。 
+// 操作成功，LoadedGame现在将包含较早前保存的数据。 
 
-		UE_LOG(LogClass, Log, TEXT("LOADED:%s"), *(LoadedGame->GetPlayerName()));
-		TArray<FMyScoreItemDataStruct> PlayerRank = LoadedGame->GetPlayerRank();
+UE_LOG(LogClass, Log, TEXT("LOADED:%s"), *(LoadedGame->GetPlayerName()));
+TArray<FMyScoreItemDataStruct> PlayerRank = LoadedGame->GetPlayerRank();
 
-		UE_LOG(LogClass, Log, TEXT("msavegame player rank loaded count:%d"), PlayerRank.Num());
-		for (int32 i = 0; i < PlayerRank.Num(); i++) {
-			auto x = PlayerRank[i];
-			UE_LOG(LogClass, Log, TEXT("msavegame: loaded: playerid:%d,playername:%s,playerscore:%f,playerrank:%d"), x.PlayerId, *(x.PlayerName), x.PlayerScore, x.PlayerRank);
-		}
+UE_LOG(LogClass, Log, TEXT("msavegame player rank loaded count:%d"), PlayerRank.Num());
+for (int32 i = 0; i < PlayerRank.Num(); i++) {
+	auto x = PlayerRank[i];
+	UE_LOG(LogClass, Log, TEXT("msavegame: loaded: playerid:%d,playername:%s,playerscore:%f,playerrank:%d"), x.PlayerId, *(x.PlayerName), x.PlayerScore, x.PlayerRank);
+}
 
-		if (mps != nullptr) { 
-			mps->SetPlayerNick(LoadedGame->GetPlayerName());
-		}
+if (mps != nullptr) {
+	mps->SetPlayerNick(LoadedGame->GetPlayerName());
+}
 
 	}
 	else {
 
-		UE_LOG(LogClass, Log, TEXT("msavegame loaded not ok"));
+	UE_LOG(LogClass, Log, TEXT("msavegame loaded not ok"));
 	}
 	// ---
 
@@ -64,8 +64,8 @@ void UMyHUD::DefaultTimer() {
 	if (MyGameState != nullptr) {
 
 		UE_LOG(LogClass, Log, TEXT("mlistview 2"));
-		if (MyGameState->IsGameFinished()) { 
-			if (MListView->GetNumItems() == 0) { 
+		if (MyGameState->IsGameFinished()) {
+			if (MListView->GetNumItems() == 0) {
 				UE_LOG(LogClass, Log, TEXT("mlistview 3"));
 				SetScoreList();
 			}
@@ -86,12 +86,12 @@ void UMyHUD::DefaultTimer() {
 
 					}
 					UE_LOG(LogClass, Log, TEXT("msavegame saved count2:%d"), SaveGameInstance->GetPlayerRank().Num());
-					
+
 					// 从自己的player state中得到自己的昵称 
-					if (mps != nullptr) { 
+					if (mps != nullptr) {
 						SaveGameInstance->SetPlayerName(mps->GetPlayerNick());
 					}
-					
+
 					// 即时保存游戏。
 					if (UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->GetSaveSlotName(), SaveGameInstance->GetUserIndex()))
 					{
@@ -100,7 +100,7 @@ void UMyHUD::DefaultTimer() {
 							plid = mps->GetPlayerId();
 						}
 						// 成功保存。 
-						UE_LOG(LogClass, Log, TEXT("msavegame save ok,playerid:%d,playerNick:%s"),plid, *(SaveGameInstance->GetPlayerName()));
+						UE_LOG(LogClass, Log, TEXT("msavegame save ok,playerid:%d,playerNick:%s"), plid, *(SaveGameInstance->GetPlayerName()));
 					}
 					else {
 						UE_LOG(LogClass, Log, TEXT("msavegame save not ok"));
@@ -109,7 +109,7 @@ void UMyHUD::DefaultTimer() {
 			}
 			// --
 		}
-		else { 
+		else {
 		}
 	}
 }
@@ -119,13 +119,13 @@ FString UMyHUD::GetScoreText() {
 	return ans;
 }
 FString UMyHUD::GetPersonalInfoText() {
-	FString  ans = TEXT("HI");
-	 
+	FString  ans;
 
-	FString OSLabel, OSVersion;
-	FPlatformMisc::GetOSVersions(OSLabel, OSVersion);
-	FString CPUInfo = FPlatformMisc::GetCPUBrand();
-	FString GPUInfo = FPlatformMisc::GetPrimaryGPUBrand();
+
+	//FString OSLabel, OSVersion;
+	//FPlatformMisc::GetOSVersions(OSLabel, OSVersion);
+	//FString CPUInfo = FPlatformMisc::GetCPUBrand();
+	//FString GPUInfo = FPlatformMisc::GetPrimaryGPUBrand();
 
 	int32 PlayerId = -1;
 
@@ -135,7 +135,18 @@ FString UMyHUD::GetPersonalInfoText() {
 		PlayerId = mps->GetPlayerId();
 		PlayerNick = mps->GetPlayerNick();
 	}
-	ans = FString::Printf(TEXT("Personal Character Info:\nPlayer Id: %d\nPlayerNick: %s\nOS: %s (%s)\nCPU: %s\nGPU: %s"), PlayerId,*PlayerNick,*OSLabel, *OSVersion, *CPUInfo, *GPUInfo);
+	ans = ans + FString::Printf(TEXT("Personal Character Info:\nPlayer Id: %d\nPlayerNick: %s\n"), PlayerId, *PlayerNick);
+
+	if (mps != nullptr) { 
+		int32 len = mps->GetWeaponData().Num();
+		ans = ans + FString::Printf(TEXT("Weapon Count:%d\n"), len);
+		if( len > 0) { 
+			ans = ans + FString::Printf(TEXT("Now Weapon Name:%s\n"), *(mps->GetWeaponData()[mps->GetNowWeaponIndex()]).WeaponName);
+		}
+	}
+	else {
+		SetMyPlayerState();
+	}
 	return ans;
 }
 float UMyHUD::GetMyScore()

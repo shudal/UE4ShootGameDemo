@@ -28,10 +28,25 @@ void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AMyPlayerState, PlayerNick); 
 }
 
+TArray<FWeaponData>& AMyPlayerState::GetWeaponData()
+{
+	// TODO: insert return statement here
+	return WeaponData;
+}
+
 FString AMyPlayerState::GetPlayerNick() { 
 	return PlayerNick;
 }
 
 void AMyPlayerState::SetPlayerNick_Implementation(const FString &x) {
 	PlayerNick = x;
+}
+
+int32 AMyPlayerState::GetNowWeaponIndex() {
+	return NowWeaponIndex;
+}
+
+ 
+void AMyPlayerState::SetNowWeaponIndex(int32 x) {
+	NowWeaponIndex = x;
 }

@@ -147,6 +147,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
 	bool bMyMeleeDown;
+
+	class AMyPlayerState* MyPlayerState;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -183,6 +185,26 @@ public:
 	FTimerHandle TimerHandle_DefaultTimer;
 
 	void DefaultTimer();
+
+
+	UFUNCTION(BlueprintCallable, Category = "Shoot")
+	void PickupThing();
+
+
+	UFUNCTION(Server, Reliable)
+	void ServerPickupThing();  
+	void ServerPickupThing_Implementation();
+	UFUNCTION(NetMulticast, Reliable)
+	void ClientPickupThing();
+	void ClientPickupThing_Implementation();
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+	float PICK_DISTANCE = 100;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Shoot")
+	void ChangeWeapon();
 private:
 	void HoldWeapon();
 

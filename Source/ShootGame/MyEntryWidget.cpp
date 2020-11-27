@@ -43,7 +43,7 @@ bool UMyEntryWidget::CanEditNick()
 			} 
 		} 
 	}
-	return false;
+	return false; 
 }
 
 void UMyEntryWidget::SetPlayerId(int32 x) {
