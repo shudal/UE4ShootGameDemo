@@ -3,6 +3,7 @@
 
 #include "ShootTarget.h"
 #include "MyGameState.h"
+ 
 
 // Sets default values
 AShootTarget::AShootTarget()
@@ -15,7 +16,7 @@ AShootTarget::AShootTarget()
 
 	RootComponent = ShootTargetMesh;
 
-	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetSimulatePhysics(true); 
 }
 
 // Called when the game starts or when spawned

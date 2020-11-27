@@ -174,11 +174,29 @@ void AShootGameCharacter::MoveRight(float Value)
 }
 
 
+AMyPlayerState* AShootGameCharacter::GetMyPlayerState() {
+	if (MyPlayerState != nullptr) {
+		return MyPlayerState;
+	}
+	else { 
+		APlayerState* x = GetPlayerState();
+		if (x != nullptr) { 
+			MyPlayerState = Cast<AMyPlayerState>(x);
+			if (MyPlayerState == nullptr) { 
+				UE_LOG(LogClass, Log, TEXT("mphy myplayerstate is nullptr"));
+			}
+		}
+		else {
+			UE_LOG(LogClass, Log, TEXT("mphy getplayerstate return nullptr"));
+		}
+		return MyPlayerState;
+	}
+}
 void AShootGameCharacter::BeginPlay() {
 	Super::BeginPlay();
 
 
-	MyPlayerState = Cast<AMyPlayerState>(GetPlayerState());
+	//MyPlayerState = Cast<AMyPlayerState>(GetPlayerState());
 
 	//HoldWeapon();
 
@@ -197,11 +215,25 @@ void AShootGameCharacter::ShootTarget()
 }
 
 
-void AShootGameCharacter::HandleFire_Implementation()
+void AShootGameCharacter::HandleFire()
 {
-	ShootTarget();
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		ClientHandleFire();
+	}
+	else
+	{
+		ServerHandleFire();
+	} 
 }
 
+void  AShootGameCharacter::ServerHandleFire_Implementation() {
+	HandleFire();
+}
+void  AShootGameCharacter::ClientHandleFire_Implementation() {
+	ShootTarget();
+}
 void AShootGameCharacter::HandleMeleeDown()
 {
 	bMyMeleeDown = true;
@@ -214,15 +246,18 @@ void AShootGameCharacter::HandleMeleeUp()
 bool  AShootGameCharacter::IsMelee() {
 	return bMyMeleeDown;
 }
-void AShootGameCharacter::ChangeWeapon()
-{
+
+void AShootGameCharacter::ServerChangeWeapon_Implementation() {
+	ChangeWeapon();
+}
+void AShootGameCharacter::ClientChangeWeapon_Implementation() {
 	if (MyWeaponClass != nullptr) {
 		MyWeaponClass->Destroy();
 		MyWeaponClass = nullptr;
 	}
 	if (MyPlayerState != nullptr) {
 		int len = MyPlayerState->GetWeaponData().Num();
-		if(len > 0){
+		if (len > 0) {
 			int32 i = MyPlayerState->GetNowWeaponIndex();
 			i = (i + 1) % len;
 
@@ -239,10 +274,21 @@ void AShootGameCharacter::ChangeWeapon()
 				MyWeaponClass = World->SpawnActor<AWeapon>(wd.WeaponStaticClass, SpawnLoc, SpawnRot, SpawnParams);
 				MyWeaponClass->AttachToComponent(this->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), "ring_02_r_socket");
 				MyWeaponClass->SetWeaponPlayer(this);
-			} 
+			}
 
 			MyPlayerState->SetNowWeaponIndex(i);
 		}
+	}
+}
+void AShootGameCharacter::ChangeWeapon()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		ClientChangeWeapon();
+	}
+	else
+	{
+		ServerChangeWeapon();
 	}
 }
 void AShootGameCharacter::HoldWeapon() {
@@ -478,10 +524,10 @@ void AShootGameCharacter::ClientPickupThing_Implementation() {
 						FWeaponData wd = pg->GetWeaponData();
 						UE_LOG(LogClass, Log, TEXT("mphy pick overlaped gun,info:%s"), *wd.ToString());
 						pg->BePicked();
-						UE_LOG(LogClass, Log, TEXT("mphy is server?%d,player state is null?%d"), GetLocalRole() == ROLE_Authority ? 1 : 0, MyPlayerState == nullptr ? 1 : 0);
+						UE_LOG(LogClass, Log, TEXT("mphy is server?%d,player state is null?%d"), GetLocalRole() == ROLE_Authority ? 1 : 0, GetMyPlayerState() == nullptr ? 1 : 0);
 
-						if (MyPlayerState != nullptr) {
-							MyPlayerState->GetWeaponData().AddUnique(pg->GetWeaponData());
+						if (GetMyPlayerState() != nullptr) {
+							GetMyPlayerState()->GetWeaponData().AddUnique(pg->GetWeaponData());
 						}
 					}
 				}

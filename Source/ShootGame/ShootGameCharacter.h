@@ -160,10 +160,14 @@ public:
 
 	void UpdateScore(float);
 
-	/** 用于生成投射物的服务器函数。*/
+
+		void HandleFire(); 
 	UFUNCTION(Server, Reliable)
-		void HandleFire();
-	void HandleFire_Implementation();
+		void ServerHandleFire();
+	void ServerHandleFire_Implementation();
+	UFUNCTION(NetMulticast, Reliable)
+		void ClientHandleFire();
+	void ClientHandleFire_Implementation();
 
 	UFUNCTION(BlueprintCallable, Category = "Shoot")
 	void  HandleMeleeDown();
@@ -205,9 +209,19 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Shoot")
 	void ChangeWeapon();
+
+
+	UFUNCTION(Server, Reliable)
+		void ServerChangeWeapon();
+	void ServerChangeWeapon_Implementation();
+	UFUNCTION(NetMulticast, Reliable)
+		void ClientChangeWeapon();
+	void ClientChangeWeapon_Implementation();
 private:
 	void HoldWeapon();
 
 	AWeapon* MyWeaponClass = nullptr;
+
+	class AMyPlayerState* GetMyPlayerState();
 };
 
