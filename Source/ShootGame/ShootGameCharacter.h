@@ -149,6 +149,9 @@ protected:
 	bool bMyMeleeDown;
 
 	class AMyPlayerState* MyPlayerState;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Classes)
+	TSubclassOf<class ACharacter>  DefaultCharacterClass;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -220,6 +223,21 @@ public:
 
 	void UpdateKillCount(int x);
 	void UpdateBlood(float x);
+
+
+	UFUNCTION(NetMulticast, Reliable)
+		void ClientBeDead();
+	void ClientBeDead_Implementation();
+
+	 
+	UFUNCTION(Server, Reliable)
+		void ServerBeRelife();
+	void ServerBeRelife_Implementation();
+	UFUNCTION(NetMulticast, Reliable)
+		void ClientBeRelife();
+	void ClientBeRelife_Implementation();
+
+	void Relife();
 private:
 	void HoldWeapon();
 

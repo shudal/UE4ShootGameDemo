@@ -29,6 +29,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
 	class UListView* MListView;
 
+	class UTextBlock* TB_RelifeTIp;
+
 
 public: 
 	UMyHUD(const FObjectInitializer& ObjectInitializer);

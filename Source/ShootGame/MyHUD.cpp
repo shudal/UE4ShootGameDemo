@@ -8,7 +8,7 @@
 #include "Misc/App.h"
 #include "Components/ListView.h"
 #include "MyGameState.h"
- 
+#include "Components/TextBlock.h"
 #include "MySaveGame.h" 
 
 UMyHUD::UMyHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -25,6 +25,11 @@ bool UMyHUD::Initialize() {
 		UE_LOG(LogClass, Log, TEXT("mlistview 4, list item count:%d"), MListView->GetNumItems());
 		MListView->ClearListItems();
 	}
+	if (UTextBlock* utb = Cast<UTextBlock>(GetWidgetFromName("MyTextInUI"))) {
+		TB_RelifeTIp = utb;
+		TB_RelifeTIp->SetVisibility(ESlateVisibility::Hidden);
+	}
+
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_DefaultTimer, this, &UMyHUD::DefaultTimer, GetWorld()->GetWorldSettings()->GetEffectiveTimeDilation(), true);
 	MyGameState = Cast<AMyGameState>(UGameplayStatics::GetGameState(GetWorld()));
@@ -59,6 +64,16 @@ if (mps != nullptr) {
 	return true;
 }
 void UMyHUD::DefaultTimer() {
+	// 
+	if (mps != nullptr) {
+		auto ls = mps->GetLifeState();
+		if (ls == ECharLifeType::CLT_DEAD) {
+			if (TB_RelifeTIp != nullptr) {
+				TB_RelifeTIp->SetVisibility(ESlateVisibility::Visible);
+			}
+		}
+	}
+
 
 	UE_LOG(LogClass, Log, TEXT("mlistview 1"));
 	if (MyGameState != nullptr) {

@@ -72,7 +72,8 @@ void AShootGameCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 
 	PlayerInputComponent->BindAction("Pick", IE_Pressed, this, &AShootGameCharacter::PickupThing); 
 	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, this, &AShootGameCharacter::ChangeWeapon);
-	
+	PlayerInputComponent->BindAction("Relife", IE_Pressed, this, &AShootGameCharacter::Relife);
+
 
 	//PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AShootGameCharacter::HandleMeleeDown);
 	//PlayerInputComponent->BindAction("Melee", IE_Released, this, &AShootGameCharacter::HandleMeleeUp);
@@ -313,7 +314,9 @@ void AShootGameCharacter::UpdateBlood(float x)
 		auto afters = GetMyPlayerState()->GetLifeState();
 		if (pres == ECharLifeType::CLT_ALIVE && afters == ECharLifeType::CLT_DEAD) {
 			// dead
-			SetSkillName("Skill3");
+			if (GetLocalRole() == ROLE_Authority) {
+				ClientBeDead();
+			}
 		}
 	} 
 }
@@ -327,6 +330,14 @@ void AShootGameCharacter::ChangeWeapon()
 	{
 		ServerChangeWeapon();
 	}
+}
+void AShootGameCharacter::ClientBeDead_Implementation()
+{
+	SetSkillName("Skill3");
+	//this->GetMesh()->SetAllBodiesSimulatePhysics(true);
+	this->GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true);
+	//this->GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0);
+	this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 }
 void AShootGameCharacter::HoldWeapon() {
 	if (MyWeapon != NULL) {
@@ -579,5 +590,63 @@ void AShootGameCharacter::ClientPickupThing_Implementation() {
 				}
 			}
 		}
+	}
+}
+
+void AShootGameCharacter::ServerBeRelife_Implementation()
+{
+	Relife();
+}
+
+void AShootGameCharacter::ClientBeRelife_Implementation()
+{
+	/* 
+	if (GetMyPlayerState() != nullptr) {
+		GetMyPlayerState()->SetLifeState(ECharLifeType::CLT_ALIVE);
+		//this->GetMesh()->SetAllBodiesSimulatePhysics(false);
+		this->GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), false);
+
+		this->GetMesh()->SetAllBodiesPhysicsBlendWeight(0);
+		//this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
+	*/
+
+	UE_LOG(LogClass, Log, TEXT("mmul pose 1"));
+	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	{
+		if ((*Iterator)->IsLocalPlayerController()) {  
+			UE_LOG(LogClass, Log, TEXT("mmul pose 0"));
+			UClass* clas = DefaultCharacterClass;
+			if (clas == nullptr) {
+				UE_LOG(LogClass, Log, TEXT("mmul pose 4"));
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "clas - false");
+			}
+			else { 
+				UE_LOG(LogClass, Log, TEXT("mmul pose 2"));
+				auto y = GetActorTransform();
+				auto x = GetWorld()->SpawnActor<AShootGameCharacter>(clas,y);
+				if (x) {
+					(*Iterator)->Possess(x); 
+					this->Destroy();
+					UE_LOG(LogClass, Log, TEXT("mmul pose"));
+
+				}
+				else { 
+					UE_LOG(LogClass, Log, TEXT("mmul pose 3"));
+				}
+			}
+			break;
+		}
+	}
+}
+
+void AShootGameCharacter::Relife() {
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		ClientBeRelife();
+	}
+	else
+	{
+		ServerBeRelife();
 	}
 }

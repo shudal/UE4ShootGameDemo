@@ -10,6 +10,7 @@
 #include "Particles/ParticleSystem.h" 
 #include "UObject/ConstructorHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "MyPlayerState.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -49,6 +50,8 @@ AWeapon::AWeapon()
 	if (DefaultImpactMetalSound.Succeeded()) {
 		ShootImpactMetalSound = DefaultImpactMetalSound.Object;
 	}
+
+	RAY_GUN_HARM_TO_MAN = 40;
 }
 
 // Called when the game starts or when spawned
@@ -149,12 +152,29 @@ void AWeapon::WeaponFire()
 		if (everHit) {
 			ProcessHitResult(HitResults);
 		}
+		else {
+			if (ShootEffect != nullptr) { 
+				//UParticleSystemComponent* ShootEffectComponent;// = UGameplayStatics::SpawnEmitterAttached(ShootEffect, GetMesh(), "ProjectileSocket", Start, Rot, EAttachLocation::SnapToTargetIncludingScale);
+				auto AnotherShootEffectComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ShootEffect, Start);
+				if (AnotherShootEffectComponent != nullptr) {
+					AnotherShootEffectComponent->SetBeamTargetPoint(0, End, 0);
+					SpawnedEffects.Add(AnotherShootEffectComponent);
+				}
+			}
+
+			UGameplayStatics::SpawnSoundAtLocation(GetWorld(), ShootImpactDefaultSound, End);
+
+		}
 	}
 }
 
 
 void AWeapon::ProcessHitResult(const TArray<FHitResult>& HitResults) {
 	bool EverHited = false;
+
+	bool EverHitMan = false;
+	AShootGameCharacter* hitedplayer = nullptr;
+
 	for (int i = 0; i < HitResults.Num() && EverHited == false; i++) {
 		auto HitRe = HitResults[i];
 
@@ -184,11 +204,12 @@ void AWeapon::ProcessHitResult(const TArray<FHitResult>& HitResults) {
 		 
 
 		if (HitBoneName.IsNone() == false &&  HitActor != nullptr) {
-			AShootGameCharacter* hitedplayer = Cast<AShootGameCharacter>(HitActor);
+			hitedplayer = Cast<AShootGameCharacter>(HitActor);
 			UE_LOG(LogClass, Log, TEXT("mphy hit bone name:%s"), *HitBoneName.ToString());
 
 			if (hitedplayer != nullptr) {
 				EverHited = true;
+				EverHitMan = true;
 
 				if (ShootEffect != nullptr) {
 					FVector Start = this->GetMesh()->GetSocketLocation("ProjectileSocket");
@@ -262,6 +283,33 @@ void AWeapon::ProcessHitResult(const TArray<FHitResult>& HitResults) {
 		}
 
 		UGameplayStatics::SpawnSoundAtLocation(GetWorld(), ShootImpactDefaultSound, Location);
+		
+		hitedplayer = Cast<AShootGameCharacter>(HitActor);
+		if (hitedplayer != nullptr) {
+			EverHitMan = true;
+		}
+	}
+
+	// 打到过人
+	if (EverHitMan && hitedplayer != nullptr) { 
+		if (GetLocalRole() == ROLE_Authority) { 
+			AShootGameCharacter* sgc = hitedplayer;
+			if (sgc != nullptr) {
+				AMyPlayerState* mps = Cast<AMyPlayerState>(sgc->GetPlayerState());
+				if (mps != nullptr) {
+					ECharLifeType pres = mps->GetLifeState();
+					sgc->UpdateBlood(-1 * RAY_GUN_HARM_TO_MAN);
+					//mps->SetBlood(mps->GetBlood() - HARM_TO_MAN);
+					auto afters = mps->GetLifeState();
+					if (pres == ECharLifeType::CLT_ALIVE && afters == ECharLifeType::CLT_DEAD) {
+						auto mychar = Cast<AShootGameCharacter>(player);
+						if (mychar != nullptr) {
+							mychar->UpdateKillCount(1);
+						}
+					}
+				}
+			}
+		}
 	}
 }
 void AWeapon::DefaultTimer()
@@ -273,6 +321,16 @@ void AWeapon::DefaultTimer()
 		SpawnedEffects.RemoveAt(0);
 	}
 
+}
+void AWeapon::BeginDestroy()
+{
+	Super::BeginDestroy();
+
+	while (SpawnedEffects.Num() > 0) {
+		auto p = SpawnedEffects[0];
+		p->DeactivaateNextTick();
+		SpawnedEffects.RemoveAt(0);
+	}
 }
 void AWeapon::SetWeaponPlayer(ACharacter* NewPlayer) {
 	player = NewPlayer;

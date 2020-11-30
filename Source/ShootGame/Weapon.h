@@ -87,7 +87,11 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	FWeaponData MyWeaponData;
-	 
+	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		float RAY_GUN_HARM_TO_MAN;
+
 	UParticleSystem* ShootEffect;
 	UParticleSystemComponent* ShootEffectComponent;
 	USoundBase* ShootImpactMeshSound; 
@@ -114,7 +118,7 @@ public:
 	FTimerHandle TimerHandle_DefaultTimer;
 
 	void DefaultTimer();
-	 
+	void BeginDestroy() override;
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* MyMesh;
