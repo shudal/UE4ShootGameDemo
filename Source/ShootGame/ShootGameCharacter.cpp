@@ -184,7 +184,7 @@ AMyPlayerState* AShootGameCharacter::GetMyPlayerState() {
 			MyPlayerState = Cast<AMyPlayerState>(x);
 			if (MyPlayerState == nullptr) { 
 				UE_LOG(LogClass, Log, TEXT("mphy myplayerstate is nullptr"));
-			}
+			} 
 		}
 		else {
 			UE_LOG(LogClass, Log, TEXT("mphy getplayerstate return nullptr"));
@@ -204,6 +204,7 @@ void AShootGameCharacter::BeginPlay() {
 
 	//GetMesh()->OnComponentHit.AddDynamic(this, &AShootGameCharacter::OnMyHit);
 
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_DefaultTimer, this, &AShootGameCharacter::DefaultTimer, GetWorld()->GetWorldSettings()->GetEffectiveTimeDilation(), true);
 
 }
 
@@ -251,34 +252,70 @@ void AShootGameCharacter::ServerChangeWeapon_Implementation() {
 	ChangeWeapon();
 }
 void AShootGameCharacter::ClientChangeWeapon_Implementation() {
-	if (MyWeaponClass != nullptr) {
-		MyWeaponClass->Destroy();
+	if (MyWeaponClass != nullptr && MyWeaponClass->IsActorInitialized()) {
+		MyWeaponClass->Destroy(); 
 		MyWeaponClass = nullptr;
 	}
 	if (MyPlayerState != nullptr) {
-		int len = MyPlayerState->GetWeaponData().Num();
+
+		auto wds = MyPlayerState->GetWeaponData();
+		int len = wds.Num();
 		if (len > 0) {
 			int32 i = MyPlayerState->GetNowWeaponIndex();
-			i = (i + 1) % len;
+			i = (i + 1) % len; 
+			if (i >= 0 && i < wds.Num()) {
+				FWeaponData wd = wds[i];
 
-			FWeaponData& wd = MyPlayerState->GetWeaponData()[i];
+				UWorld* const World = GetWorld();
+				if (World != nullptr) {
+					FActorSpawnParameters SpawnParams;
+					SpawnParams.Owner = this;
+					SpawnParams.Instigator = GetInstigator();
+					FVector SpawnLoc = GetMesh()->GetSocketLocation("ring_01_r");
+					FRotator SpawnRot = UKismetMathLibrary::MakeRotator(0, 0, 0);
+					UClass* clas = wd.WeaponStaticClass;
+					if (clas == nullptr) {
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "clas - false");
+					}
+					else {
+						MyWeaponClass = World->SpawnActor<AWeapon>(clas, SpawnLoc, SpawnRot, SpawnParams);
+						if (MyWeaponClass) {
+							MyWeaponClass->AttachToComponent(this->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), "ring_02_r_socket");
+							MyWeaponClass->SetWeaponPlayer(this);
+						}
+					}
+				}
 
-			UWorld* const World = GetWorld();
-			if (World) {
-				FActorSpawnParameters SpawnParams;
-				SpawnParams.Owner = this;
-				SpawnParams.Instigator = GetInstigator();
-				FVector SpawnLoc = GetMesh()->GetSocketLocation("ring_01_r");
-				FRotator SpawnRot = UKismetMathLibrary::MakeRotator(0, 0, 0);
-
-				MyWeaponClass = World->SpawnActor<AWeapon>(wd.WeaponStaticClass, SpawnLoc, SpawnRot, SpawnParams);
-				MyWeaponClass->AttachToComponent(this->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), "ring_02_r_socket");
-				MyWeaponClass->SetWeaponPlayer(this);
+				MyPlayerState->SetNowWeaponIndex(i);
 			}
+			else {
+				FString msg = FString::Printf(TEXT("i=%d,len=%d "), i, wds.Num());
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, msg);
 
-			MyPlayerState->SetNowWeaponIndex(i);
+			}
+			
 		}
 	}
+}
+void AShootGameCharacter::UpdateKillCount(int x)
+{
+	if (GetMyPlayerState() != nullptr) {
+		GetMyPlayerState()->UpdateKillCount(x);
+	}
+}
+void AShootGameCharacter::UpdateBlood(float x)
+{ 
+	UE_LOG(LogClass, Log, TEXT("mmul update blood called")); 
+	if (GetMyPlayerState() != nullptr) {
+		UE_LOG(LogClass, Log, TEXT("mmul update blood called 2"));
+		ECharLifeType pres = GetMyPlayerState()->GetLifeState();
+		GetMyPlayerState()->SetBlood(GetMyPlayerState()->GetBlood() + x);
+		auto afters = GetMyPlayerState()->GetLifeState();
+		if (pres == ECharLifeType::CLT_ALIVE && afters == ECharLifeType::CLT_DEAD) {
+			// dead
+			SetSkillName("Skill3");
+		}
+	} 
 }
 void AShootGameCharacter::ChangeWeapon()
 {
@@ -473,6 +510,15 @@ void AShootGameCharacter::OnMyHit(UPrimitiveComponent* HitComponent, AActor* Oth
 */
 void  AShootGameCharacter::DefaultTimer() {
 	SetSkillNameWrapper("None");
+
+	if (MyPlayerState == nullptr) {
+		GetMyPlayerState();
+	}
+	else {
+		if (MyPlayerState->GetMyChar() == nullptr) {
+			MyPlayerState->SetMyChar(this);
+		}
+	}
 }
 
 void AShootGameCharacter::PickupThing() { 

@@ -138,11 +138,17 @@ FString UMyHUD::GetPersonalInfoText() {
 	ans = ans + FString::Printf(TEXT("Personal Character Info:\nPlayer Id: %d\nPlayerNick: %s\n"), PlayerId, *PlayerNick);
 
 	if (mps != nullptr) { 
+		// weapon info
 		int32 len = mps->GetWeaponData().Num();
 		ans = ans + FString::Printf(TEXT("Weapon Count:%d\n"), len);
 		if( len > 0) { 
 			ans = ans + FString::Printf(TEXT("Now Weapon Name:%s\n"), *(mps->GetWeaponData()[mps->GetNowWeaponIndex()]).WeaponName);
 		}
+
+		// blood info
+		float blo = mps->GetBlood();	
+		ans = ans + FString::Printf(TEXT("Blood:%f\n"), blo);
+
 	}
 	else {
 		SetMyPlayerState();

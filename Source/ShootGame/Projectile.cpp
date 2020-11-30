@@ -11,6 +11,7 @@
 #include "Particles/ParticleSystem.h"
 #include "UObject/ConstructorHelpers.h" 
 #include "Kismet/KismetMathLibrary.h"
+#include "MyPlayerState.h"
 
 // Sets default values
 AProjectile::AProjectile()
@@ -43,6 +44,7 @@ AProjectile::AProjectile()
 	MIN_VELOCITY_TO_EXPLODE = 0.1; 
 	EXPLODE_RADIUS = 2;
 	EXPLODE_STRENGTH = 100;
+	HARM_TO_MAN = 40;
 }
 
 // Called when the game starts or when spawned
@@ -86,9 +88,28 @@ void AProjectile::OnMyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		}
 	}
 
+	
 	// ½ÇÉ«
 	ACharacter* hitedchar = Cast<ACharacter>(OtherActor);
 	if (hitedchar != nullptr) {
+		if (GetLocalRole() == ROLE_Authority) {
+			AShootGameCharacter* sgc = Cast<AShootGameCharacter>(hitedchar);
+			if (sgc != nullptr) {
+				AMyPlayerState* mps = Cast<AMyPlayerState>(sgc->GetPlayerState());
+				if (mps != nullptr) {
+					ECharLifeType pres = mps->GetLifeState();
+					sgc->UpdateBlood(-1 * HARM_TO_MAN);
+					//mps->SetBlood(mps->GetBlood() - HARM_TO_MAN);
+					auto afters = mps->GetLifeState();
+					if (pres == ECharLifeType::CLT_ALIVE && afters == ECharLifeType::CLT_DEAD) {
+						auto mychar = Cast<AShootGameCharacter>(player);
+						if (mychar != nullptr) {
+							mychar->UpdateKillCount(1);
+						}
+					}
+				}
+			}
+		} 
 		MyBoom();
 		EverDesed = true;
 	}

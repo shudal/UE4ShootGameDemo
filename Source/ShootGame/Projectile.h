@@ -35,6 +35,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
 		float EXPLODE_STRENGTH;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
+		float HARM_TO_MAN;
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

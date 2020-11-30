@@ -217,6 +217,9 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 		void ClientChangeWeapon();
 	void ClientChangeWeapon_Implementation();
+
+	void UpdateKillCount(int x);
+	void UpdateBlood(float x);
 private:
 	void HoldWeapon();
 
