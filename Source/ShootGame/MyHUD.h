@@ -30,7 +30,7 @@ protected:
 	class UListView* MListView;
 
 	class UTextBlock* TB_RelifeTIp;
-
+	class UTextBlock* TB_PlayerStateList;
 
 public: 
 	UMyHUD(const FObjectInitializer& ObjectInitializer);

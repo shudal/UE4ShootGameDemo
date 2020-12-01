@@ -29,7 +29,10 @@ bool UMyHUD::Initialize() {
 		TB_RelifeTIp = utb;
 		TB_RelifeTIp->SetVisibility(ESlateVisibility::Hidden);
 	}
-
+	if (UTextBlock* utb = Cast<UTextBlock>(GetWidgetFromName("TB_PlayerStateList"))) {
+		TB_PlayerStateList = utb; 
+	}
+	
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_DefaultTimer, this, &UMyHUD::DefaultTimer, GetWorld()->GetWorldSettings()->GetEffectiveTimeDilation(), true);
 	MyGameState = Cast<AMyGameState>(UGameplayStatics::GetGameState(GetWorld()));
@@ -39,25 +42,25 @@ bool UMyHUD::Initialize() {
 	// ---
 	if (UMySaveGame* LoadedGame = Cast<UMySaveGame>(UGameplayStatics::LoadGameFromSlot("MySaveGame", 0)))
 	{
-// 操作成功，LoadedGame现在将包含较早前保存的数据。 
+		// 操作成功，LoadedGame现在将包含较早前保存的数据。 
 
-UE_LOG(LogClass, Log, TEXT("LOADED:%s"), *(LoadedGame->GetPlayerName()));
-TArray<FMyScoreItemDataStruct> PlayerRank = LoadedGame->GetPlayerRank();
+		UE_LOG(LogClass, Log, TEXT("LOADED:%s"), *(LoadedGame->GetPlayerName()));
+		TArray<FMyScoreItemDataStruct> PlayerRank = LoadedGame->GetPlayerRank();
 
-UE_LOG(LogClass, Log, TEXT("msavegame player rank loaded count:%d"), PlayerRank.Num());
-for (int32 i = 0; i < PlayerRank.Num(); i++) {
-	auto x = PlayerRank[i];
-	UE_LOG(LogClass, Log, TEXT("msavegame: loaded: playerid:%d,playername:%s,playerscore:%f,playerrank:%d"), x.PlayerId, *(x.PlayerName), x.PlayerScore, x.PlayerRank);
-}
+		UE_LOG(LogClass, Log, TEXT("msavegame player rank loaded count:%d"), PlayerRank.Num());
+		for (int32 i = 0; i < PlayerRank.Num(); i++) {
+			auto x = PlayerRank[i];
+			UE_LOG(LogClass, Log, TEXT("msavegame: loaded: playerid:%d,playername:%s,playerscore:%f,playerrank:%d"), x.PlayerId, *(x.PlayerName), x.PlayerScore, x.PlayerRank);
+		}
 
-if (mps != nullptr) {
-	mps->SetPlayerNick(LoadedGame->GetPlayerName());
-}
+		if (mps != nullptr) {
+			mps->SetPlayerNick(LoadedGame->GetPlayerName());
+		}
 
 	}
 	else {
 
-	UE_LOG(LogClass, Log, TEXT("msavegame loaded not ok"));
+		UE_LOG(LogClass, Log, TEXT("msavegame loaded not ok"));
 	}
 	// ---
 
@@ -79,7 +82,8 @@ void UMyHUD::DefaultTimer() {
 	if (MyGameState != nullptr) {
 
 		UE_LOG(LogClass, Log, TEXT("mlistview 2"));
-		if (MyGameState->IsGameFinished()) {
+		if (MyGameState->IsGameFinished()) { 
+
 			if (MListView->GetNumItems() == 0) {
 				UE_LOG(LogClass, Log, TEXT("mlistview 3"));
 				SetScoreList();
