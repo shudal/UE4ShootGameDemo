@@ -610,34 +610,52 @@ void AShootGameCharacter::ClientBeRelife_Implementation()
 		//this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
 	*/
+	if (GetMyPlayerState() != nullptr) {
+		GetMyPlayerState()->SetLifeState(ECharLifeType::CLT_ALIVE);
+	}
+	this->DetachFromControllerPendingDestroy();
+	this->Destroy();
+	/*
+	if (GetLocalRole() == ROLE_Authority) {
 
+	}
+	else {
+
+		GetWorld()->GetFirstPlayerController()->ServerRestartPlayer();
+	}
+	*/
+	/*
 	UE_LOG(LogClass, Log, TEXT("mmul pose 1"));
 	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
-	{
-		if ((*Iterator)->IsLocalPlayerController()) {  
+	{  
+		if ((*Iterator)->IsLocalPlayerController()) {
 			UE_LOG(LogClass, Log, TEXT("mmul pose 0"));
 			UClass* clas = DefaultCharacterClass;
 			if (clas == nullptr) {
 				UE_LOG(LogClass, Log, TEXT("mmul pose 4"));
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "clas - false");
 			}
-			else { 
+			else {
+				//(*Iterator)->ServerRestartPlayer();
+				
 				UE_LOG(LogClass, Log, TEXT("mmul pose 2"));
 				auto y = GetActorTransform();
-				auto x = GetWorld()->SpawnActor<AShootGameCharacter>(clas,y);
+				auto x = GetWorld()->SpawnActor<AShootGameCharacter>(clas, y);
 				if (x) {
-					(*Iterator)->Possess(x); 
-					this->Destroy();
+
+					(*Iterator)->Possess(x);
+					//this->Destroy();
 					UE_LOG(LogClass, Log, TEXT("mmul pose"));
 
 				}
-				else { 
+				else {
 					UE_LOG(LogClass, Log, TEXT("mmul pose 3"));
-				}
+				} 
 			}
 			break;
 		}
-	}
+	} 
+	*/
 }
 
 void AShootGameCharacter::Relife() {
