@@ -10,10 +10,12 @@
 #include "MyGameState.h"
 #include "Components/TextBlock.h"
 #include "MySaveGame.h" 
+#include "Components/Button.h"
 
 UMyHUD::UMyHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	MListView = nullptr;
+	bEverSetGameEnded = false;
 }
 bool UMyHUD::Initialize() { 
 	if (!Super::Initialize()) {
@@ -32,7 +34,9 @@ bool UMyHUD::Initialize() {
 	if (UTextBlock* utb = Cast<UTextBlock>(GetWidgetFromName("TB_PlayerStateList"))) {
 		TB_PlayerStateList = utb; 
 	}
-	
+	 
+
+
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_DefaultTimer, this, &UMyHUD::DefaultTimer, GetWorld()->GetWorldSettings()->GetEffectiveTimeDilation(), true);
 	MyGameState = Cast<AMyGameState>(UGameplayStatics::GetGameState(GetWorld()));
@@ -73,6 +77,14 @@ void UMyHUD::DefaultTimer() {
 		if (ls == ECharLifeType::CLT_DEAD) {
 			if (TB_RelifeTIp != nullptr) {
 				TB_RelifeTIp->SetVisibility(ESlateVisibility::Visible);
+				if (RelifeAnim != nullptr) {
+					PlayAnimation(RelifeAnim, 0, 0);
+				}
+			}
+		}
+		else {
+			if (TB_RelifeTIp != nullptr && TB_RelifeTIp->IsVisible()) {
+				TB_RelifeTIp->SetVisibility(ESlateVisibility::Hidden);
 			}
 		}
 	}
@@ -83,6 +95,40 @@ void UMyHUD::DefaultTimer() {
 
 		UE_LOG(LogClass, Log, TEXT("mlistview 2"));
 		if (MyGameState->IsGameFinished()) { 
+
+			if (bEverSetGameEnded == false) {
+				bEverSetGameEnded = true;
+				
+				 
+
+				if (!BTN_ReturnToMain->IsVisible()) {
+					BTN_ReturnToMain->SetVisibility(ESlateVisibility::Visible);
+				} 
+				
+				// 让人不能动
+				TArray<AActor*> FoundActors;
+				UGameplayStatics::GetAllActorsOfClass(GetWorld(), AShootGameCharacter::StaticClass(), FoundActors);
+				for (auto Actor : FoundActors) {
+					AShootGameCharacter* MyChar = Cast<AShootGameCharacter>(Actor);
+					if (MyChar != nullptr && MyChar->IsLocallyControlled()) {
+						for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+						{
+							auto x = *Iterator;
+							if (x->IsLocalPlayerController()) {
+								MyChar->DisableInput(x.Get());
+
+								// 显示鼠标
+								x->bShowMouseCursor = true;
+								break;
+							}
+
+						}
+
+						break;
+					}
+				}
+			}
+
 
 			if (MListView->GetNumItems() == 0) {
 				UE_LOG(LogClass, Log, TEXT("mlistview 3"));
@@ -236,4 +282,9 @@ void UMyHUD::SetScoreList() {
 		}
 		*/
 	}
+}
+
+
+void UMyHUD::BackToMainMenu() {
+	UGameplayStatics::OpenLevel(GetWorld(), "Map_MainMenu");
 }

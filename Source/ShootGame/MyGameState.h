@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h" 
-#include "MyScoreItemData.h"
+#include "MyScoreItemData.h" 
 #include "MyGameState.generated.h"
+ 
 
 /**
  * 

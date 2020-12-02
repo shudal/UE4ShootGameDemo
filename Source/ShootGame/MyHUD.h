@@ -20,7 +20,7 @@ private:
 	UPROPERTY()
 	class AMyPlayerState* mps;
 	class AMyGameState* MyGameState;
-
+	bool bEverSetGameEnded;
 protected:
 	void SetMyPlayerState();
 	 
@@ -31,6 +31,12 @@ protected:
 
 	class UTextBlock* TB_RelifeTIp;
 	class UTextBlock* TB_PlayerStateList;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (BindWidgetAnim))
+		class UWidgetAnimation* RelifeAnim = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (BindWidget))
+	class UButton* BTN_ReturnToMain = nullptr;
 
 public: 
 	UMyHUD(const FObjectInitializer& ObjectInitializer);
@@ -58,4 +64,8 @@ public:
 	FTimerHandle TimerHandle_DefaultTimer;
 
 	void DefaultTimer();
+
+
+	UFUNCTION(BlueprintCallable)
+	void BackToMainMenu();
 };

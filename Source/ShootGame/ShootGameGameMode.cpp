@@ -19,7 +19,8 @@ AShootGameGameMode::AShootGameGameMode()
 	
 	}
 
-	RoundTime = 300;
+	RoundTime = 15;
+	bEverSetGameEnded = false;
 }
 
 void AShootGameGameMode::BeginPlay() { 
@@ -34,6 +35,7 @@ void AShootGameGameMode::BeginPlay() {
 	GetWorldTimerManager().SetTimer(TimerHandle_DefaultTimer, this, &AShootGameGameMode::DefaultTimer, GetWorldSettings()->GetEffectiveTimeDilation(), true);
 
 
+	bEverSetGameEnded = false;
 }
 
 void AShootGameGameMode::DefaultTimer()
@@ -44,8 +46,11 @@ void AShootGameGameMode::DefaultTimer()
 		MyGameState->SetRemainingTime(MyGameState->GetRemainingTime() - 1);
 		UE_LOG(LogClass, Log, TEXT("Game Remaing Time: %d"), MyGameState->GetRemainingTime());
 	}
-	else {
-		MyGameState->SetGameStatus(2); 
+	else { 
+		if (bEverSetGameEnded == false) { 
+			bEverSetGameEnded = true;
+			MyGameState->SetGameStatus(2);
+		}
 		
 	}
 }

@@ -163,7 +163,7 @@ TArray<UMyScoreItemData*> AMyGameState::GetScoreItemArray() {
 		return s1.GetPlayerScore() > s2.GetPlayerScore();
 	});
 	for (int32 i = 0; i < PlayerRank.Num(); i++) {
-		PlayerRank[i]->SetPlayerRank(i + 1);
+		PlayerRank[i]->SetPlayerRank(i);
 	}
 	return PlayerRank;
 }

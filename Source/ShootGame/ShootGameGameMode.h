@@ -6,11 +6,16 @@
 #include "GameFramework/GameModeBase.h"
 #include "ShootGameGameMode.generated.h"
 
+
+
+
 UCLASS(minimalapi)
 class AShootGameGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
+private:
+	bool bEverSetGameEnded;
 public:
 	AShootGameGameMode();
 

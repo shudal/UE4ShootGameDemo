@@ -14,7 +14,7 @@ void AMyGameHUD::BeginPlay() {
 		if (MyWidget) {
 			MyGameUW = Cast<UMyHUD>(MyWidget);
 			if (MyGameUW) { 
-				MyGameUW->AddToViewport();
+				MyGameUW->AddToViewport(); 
 			}
 		}
 	}
