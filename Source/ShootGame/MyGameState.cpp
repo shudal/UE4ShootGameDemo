@@ -105,6 +105,40 @@ FString AMyGameState::GetScoreListText() {
 	return ans;
 }
 
+TArray<FMyScoreItemDataStruct> AMyGameState::GetScoreItems() {
+	TArray<FMyScoreItemDataStruct> ans;
+
+
+	FMyScoreItemDataStruct head;
+	head.PlayerScore = INT32_MAX;
+	head.ScoreItemType = EScoreItemType::SIT_Head;
+	ans.Add(head);
+
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AShootGameCharacter::StaticClass(), FoundActors);
+	for (auto Actor : FoundActors) {
+		AShootGameCharacter* MyChar = Cast<AShootGameCharacter>(Actor);
+		if (MyChar) {
+			AMyPlayerState* mps = Cast<AMyPlayerState>(MyChar->GetPlayerState());
+			if (mps) {
+				FMyScoreItemDataStruct ids;
+				ids.PlayerId = mps->GetPlayerId();
+				ids.PlayerName = mps->GetPlayerNick();
+				ids.PlayerScore = mps->GetPlayerScore();
+				ids.KillCount = mps->GetKillCount();
+				ids.KilledCount = mps->GetKilledCount();
+				ans.AddUnique(ids);
+			}
+		}
+	}
+	ans.Sort([](const FMyScoreItemDataStruct& s1, const FMyScoreItemDataStruct& s2) {
+		return s1.PlayerScore > s2.PlayerScore;
+	});
+	for (int32 i = 0; i < PlayerRank.Num(); i++) {
+		ans[i].PlayerRank = i + 1;
+	}
+	return ans;
+}
 TArray<UMyScoreItemData*> AMyGameState::GetScoreItemArray() { 
 	PlayerRank.Empty();
 

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "MyScoreItemData.h"
 #include "MyEntryWidget.generated.h"
 
 /**
@@ -15,6 +16,12 @@ class SHOOTGAME_API UMyEntryWidget : public UUserWidget
 	GENERATED_BODY()
 	
 
+protected:
+	class UTextBlock* TB_PlayerId;
+	class UEditableText* ET_PlayerNick;
+	class UTextBlock* TB_PlayerScore;
+	class UTextBlock* TB_KillCount;
+	class UTextBlock* TB_KilledCount;
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyGame")
@@ -34,4 +41,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetMyPlayerName(FString x);
+
+
+	UFUNCTION(BlueprintCallable)
+	void ProcessScoreItemData(FMyScoreItemDataStruct sids);
+
+
+	bool Initialize() override;
 };

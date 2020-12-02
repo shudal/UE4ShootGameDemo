@@ -7,6 +7,8 @@
 #include "MyPlayerState.h"
 #include "MyScoreItemData.h"
 #include "MyGameState.h"
+#include "Components/TextBlock.h"
+#include "Components/EditableText.h"
  
 bool UMyEntryWidget::CanEditNick()
 {
@@ -70,4 +72,78 @@ void UMyEntryWidget::SetMyPlayerName(FString x) {
 			}
 		}
 	}
+}
+
+void UMyEntryWidget::ProcessScoreItemData(FMyScoreItemDataStruct sids)
+{
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AShootGameCharacter::StaticClass(), FoundActors);
+	int32 MyPlayerId=-1;
+	for (auto Actor : FoundActors) {
+		AShootGameCharacter* MyChar = Cast<AShootGameCharacter>(Actor);
+		if (MyChar && MyChar->IsLocallyControlled()) {
+			AMyPlayerState* mps = Cast<AMyPlayerState>(MyChar->GetPlayerState());
+			if (mps) {
+				MyPlayerId = mps->GetPlayerId();
+					break;
+			}
+		}
+	}
+
+	if (sids.ScoreItemType == EScoreItemType::SIT_Normal) {
+		if (TB_PlayerId != nullptr) TB_PlayerId->SetText(FText::FromString(FString::FromInt(sids.PlayerId)));
+		if (ET_PlayerNick != nullptr) ET_PlayerNick->SetText(FText::FromString(sids.PlayerName));
+		if (TB_PlayerScore != nullptr) TB_PlayerScore->SetText(FText::FromString(FString::FromInt(sids.PlayerScore)));
+		if (TB_KillCount != nullptr) TB_KillCount->SetText(FText::FromString(FString::FromInt(sids.KillCount)));
+		if (TB_KilledCount != nullptr) TB_KilledCount->SetText(FText::FromString(FString::FromInt(sids.KilledCount)));
+
+		if (ET_PlayerNick != nullptr) {
+			if (sids.PlayerRank <= CanEditNum) { 
+				if (sids.PlayerId == MyPlayerId) {
+					ET_PlayerNick->SetIsReadOnly(false);
+				}
+				else {
+					ET_PlayerNick->SetIsReadOnly(true);
+				}
+			}
+			else { 
+				ET_PlayerNick->SetIsReadOnly(true);
+			}
+		}
+
+	}
+	else { 
+		if (TB_PlayerId != nullptr) TB_PlayerId->SetText(FText::FromString("Id"));
+		if (ET_PlayerNick != nullptr) {
+			ET_PlayerNick->SetText(FText::FromString("Nickname"));
+			ET_PlayerNick->SetIsReadOnly(true);
+		}
+		if (TB_PlayerScore != nullptr) TB_PlayerScore->SetText(FText::FromString("Score"));
+		if (TB_KillCount != nullptr) TB_KillCount->SetText(FText::FromString("Kill"));
+		if (TB_KilledCount != nullptr) TB_KilledCount->SetText(FText::FromString("Killed"));
+ 
+	}
+}
+
+bool UMyEntryWidget::Initialize() { 
+	if (!Super::Initialize()) {
+		return false;
+	}
+
+	if (UTextBlock* utb = Cast<UTextBlock>(GetWidgetFromName("TB_PlayerId"))) {
+		TB_PlayerId = utb; 
+	}
+	if (UEditableText* uet = Cast<UEditableText>(GetWidgetFromName("ET_PlayerNick"))) {
+		ET_PlayerNick = uet;
+	}
+	if (UTextBlock* utb = Cast<UTextBlock>(GetWidgetFromName("TB_PlayerScore"))) {
+		TB_PlayerScore = utb;
+	}
+	if (UTextBlock* utb = Cast<UTextBlock>(GetWidgetFromName("TB_KillCount"))) {
+		TB_KillCount = utb;
+	}
+	if (UTextBlock* utb = Cast<UTextBlock>(GetWidgetFromName("TB_KilledCount"))) {
+		TB_KilledCount = utb;
+	}
+	return true;
 }

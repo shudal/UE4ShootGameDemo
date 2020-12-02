@@ -220,6 +220,13 @@ void UMyHUD::SetScoreList() {
 	AMyGameState* gs = Cast<AMyGameState>(UGameplayStatics::GetGameState(GetWorld()));
 
 	if (gs != nullptr) {
+		auto sids = gs->GetScoreItems();
+		for (auto x : sids) { 
+			UMyScoreItemData* msid = NewObject<UMyScoreItemData>(this, UMyScoreItemData::StaticClass());
+			msid->ItemData = x;
+			MListView->AddItem(msid);
+		}
+		/*
 		TArray<UMyScoreItemData*> sids = gs->GetScoreItemArray();
 		for (UMyScoreItemData* si : sids) { 
 			si->SetPlayerRank(i++);
@@ -227,5 +234,6 @@ void UMyHUD::SetScoreList() {
 
 			UE_LOG(LogClass, Log, TEXT("mlistview playerScore:%f"), si->GetPlayerScore());
 		}
+		*/
 	}
 }

@@ -51,6 +51,7 @@ public:
 
 	 
 	TArray<UMyScoreItemData*> GetScoreItemArray();
+	TArray<FMyScoreItemDataStruct> GetScoreItems();
 
 	bool IsGameFinished();
 

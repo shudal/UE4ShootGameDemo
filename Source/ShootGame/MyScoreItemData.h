@@ -10,28 +10,42 @@
  * 
  */
 
+
+UENUM(BlueprintType)
+enum class EScoreItemType : uint8 {
+	SIT_Normal,
+	SIT_Head
+};
+
 USTRUCT(BlueprintType)
 struct FMyScoreItemDataStruct
 {
-	GENERATED_BODY() 
+	GENERATED_BODY()
+
+		EScoreItemType ScoreItemType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString PlayerName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float PlayerScore;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int32 PlayerRank;
-
+		int32 PlayerRank; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 PlayerId;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FString PlayerName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float PlayerScore;  
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int32 KillCount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int32 KilledCount;
 
 	FMyScoreItemDataStruct() {
+		ScoreItemType = EScoreItemType::SIT_Normal;
+
 		PlayerId = -1;
 		PlayerName = "NoneName";
 		PlayerScore = 0;
 		PlayerRank = -1;
+		KillCount = 0;
+		KilledCount = 0;
 	}
 	FMyScoreItemDataStruct(int32 pid, FString pn, float ps, int32 pr) {
 		PlayerId = pid;
@@ -102,4 +116,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		int32 GetPlayerId() const;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FMyScoreItemDataStruct ItemData;
 };
