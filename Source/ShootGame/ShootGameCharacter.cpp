@@ -14,6 +14,10 @@
 #include "Net/UnrealNetwork.h" 
 #include "Pickups/Pickup_Gun.h"
 
+#include "Kismet/GameplayStatics.h"
+
+#include "Components/LineBatchComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // AShootGameCharacter
 
@@ -54,6 +58,8 @@ AShootGameCharacter::AShootGameCharacter()
 	PlayerScore = 0.0f;
 	xcount = 0;
 	bIsAI = false;
+	bIsMeleeHarm = true;
+	Melee_RightKickHarm = 10;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -195,6 +201,10 @@ AMyPlayerState* AShootGameCharacter::GetMyPlayerState() {
 }
 void AShootGameCharacter::BeginPlay() {
 	Super::BeginPlay();
+
+	MeleeDetectCollisionObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+	MyUniqueId = GetUniqueID();
+	MyLine = GetWorld()->PersistentLineBatcher;
 
 
 	//MyPlayerState = Cast<AMyPlayerState>(GetPlayerState());
@@ -456,6 +466,7 @@ void AShootGameCharacter::Tick(float DeltaTime)
 		SetAnimRotator(x);
 	}  
 	 
+	ProcessMelee();
 }
 
 bool AShootGameCharacter::IsFreeView() {
@@ -666,5 +677,88 @@ void AShootGameCharacter::Relife() {
 	else
 	{
 		ServerBeRelife();
+	}
+}
+
+bool AShootGameCharacter::IsMeleeHarm() {
+	return bIsMeleeHarm;
+}
+void AShootGameCharacter::SetIsMeleeHarm(bool x) {
+	bIsMeleeHarm = x;
+}
+
+void AShootGameCharacter::SetCharSkill(ECharSkill x)
+{
+	if (x == ECharSkill::RightKick) {
+		Melee_SocketNames = Melee_RightKickSocketNames;
+		MeleeHarm = Melee_RightKickHarm;
+	}
+}
+
+void AShootGameCharacter::ProcessMelee() {
+	if (IsMeleeHarm()) {
+		int32 socklen = Melee_SocketNames.Num();
+		TArray<FVector> NowSockLocs;
+		for (int32 i = 0; i < socklen; i++) {
+			FVector loc = GetMesh()->GetSocketLocation(Melee_SocketNames[i]);
+			NowSockLocs.Add(loc);
+		}
+
+		if (LastAttackSocketLocs.Num() == socklen) {
+			for (int i = 0; i < socklen; i++) {
+				FVector& befLoc = LastAttackSocketLocs[i];
+				FVector& aftLoc = NowSockLocs[i]; 
+			
+				auto Rot = UKismetMathLibrary::FindLookAtRotation(befLoc,aftLoc);
+				TArray<FHitResult> HitResults;
+
+				MyLine->DrawLine(befLoc, aftLoc, FLinearColor(1, 0, 0, 1), 4, 0.3, 1);
+
+				bool everHit = GetWorld()->LineTraceMultiByObjectType(
+					HitResults,
+					befLoc,
+					aftLoc,
+					MeleeDetectCollisionObjectQueryParams
+				);
+				if (everHit) {
+					for (auto HitRe : HitResults) {
+						if (auto oa = Cast<AShootGameCharacter>(HitRe.GetActor())) {
+							if (oa->GetUniqueID() != MyUniqueId) { 
+								MeleeHarmChars.Add(oa);
+								EverHarm.Add(oa->GetUniqueID(), false);
+								//EverHarm[oa->GetUniqueID()] = false;
+							}
+						} 
+					}
+				}
+			}
+		}
+
+		LastAttackSocketLocs = std::move(NowSockLocs);
+	}
+	else {
+		if (LastAttackSocketLocs.Num() > 0) {
+			LastAttackSocketLocs.Empty();
+		}
+		if (MeleeHarmChars.Num() > 0) {
+			for (auto c : MeleeHarmChars) {
+				bool* p = EverHarm.Find(c->GetUniqueID());
+				if (p != nullptr && (*p) == false) {
+					AMyPlayerState* mps = Cast<AMyPlayerState>(c->GetPlayerState());
+					if (mps != nullptr) {
+						ECharLifeType pres = mps->GetLifeState();
+						c->UpdateBlood(-1 * MeleeHarm);
+						auto afters = mps->GetLifeState();
+						if (pres == ECharLifeType::CLT_ALIVE && afters == ECharLifeType::CLT_DEAD) {
+							UpdateKillCount(1);
+						}
+					}
+
+					EverHarm.Add(c->GetUniqueID(), true);
+				} 
+			}
+
+			MeleeHarmChars.Empty();
+		}
 	}
 }

@@ -7,6 +7,13 @@
 #include "Weapon.h"
 #include "ShootGameCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum class ECharSkill : uint8 {
+	None,
+	RightKick
+};
+
+
 UCLASS(config=Game)
 class AShootGameCharacter : public ACharacter
 {
@@ -152,6 +159,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Classes)
 	TSubclassOf<class ACharacter>  DefaultCharacterClass;
+
+
+	bool bIsMeleeHarm;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -238,11 +248,33 @@ public:
 	void ClientBeRelife_Implementation();
 
 	void Relife();
+
+	bool IsMeleeHarm();
+	void SetIsMeleeHarm(bool x);  
+	void SetCharSkill(ECharSkill x);
+protected: 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TArray<FName> Melee_RightKickSocketNames;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float Melee_RightKickHarm;
 private:
 	void HoldWeapon();
 
 	AWeapon* MyWeaponClass = nullptr;
 
 	class AMyPlayerState* GetMyPlayerState();
+	 
+
+	TArray<FVector> LastAttackSocketLocs; 
+	TArray<FName> Melee_SocketNames;
+	void ProcessMelee(); 
+	FCollisionObjectQueryParams MeleeDetectCollisionObjectQueryParams;
+	TArray<AShootGameCharacter*> MeleeHarmChars;
+	TMap<uint32, bool> EverHarm;
+	float MeleeHarm;
+	uint32 MyUniqueId;
+
+	class ULineBatchComponent* MyLine;
 };
 
