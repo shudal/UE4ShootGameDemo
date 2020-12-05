@@ -10,7 +10,9 @@
 UENUM(BlueprintType)
 enum class ECharSkill : uint8 {
 	None,
-	RightKick
+	RightKick,
+	LeftTap,
+	PowerSmash
 };
 
 
@@ -254,10 +256,18 @@ public:
 	void SetCharSkill(ECharSkill x);
 protected: 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TArray<FName> Melee_RightKickSocketNames;
+		TArray<FName> Melee_RightKickSocketNames; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TArray<FName> Melee_LeftTapSocketNames; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TArray<FName> Melee_PowerSmashSocketNames;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float Melee_RightKickHarm;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float Melee_LeftTapHarm;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float Melee_PowerSmashHarm;
 private:
 	void HoldWeapon();
 

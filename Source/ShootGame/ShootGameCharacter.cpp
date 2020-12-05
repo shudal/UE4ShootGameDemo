@@ -59,7 +59,9 @@ AShootGameCharacter::AShootGameCharacter()
 	xcount = 0;
 	bIsAI = false;
 	bIsMeleeHarm = true;
-	Melee_RightKickHarm = 10;
+	Melee_RightKickHarm = 10; 
+	Melee_LeftTapHarm = 5; 
+	Melee_PowerSmashHarm = 15;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -692,6 +694,14 @@ void AShootGameCharacter::SetCharSkill(ECharSkill x)
 	if (x == ECharSkill::RightKick) {
 		Melee_SocketNames = Melee_RightKickSocketNames;
 		MeleeHarm = Melee_RightKickHarm;
+	}
+	else if (x == ECharSkill::LeftTap) {
+		Melee_SocketNames = Melee_LeftTapSocketNames;
+		MeleeHarm = Melee_LeftTapHarm;
+	}
+	else if (x == ECharSkill::PowerSmash) { 
+		Melee_SocketNames = Melee_PowerSmashSocketNames;
+		MeleeHarm = Melee_PowerSmashHarm;
 	}
 }
 

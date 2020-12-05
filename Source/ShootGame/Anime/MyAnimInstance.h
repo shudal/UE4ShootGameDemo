@@ -27,4 +27,21 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void AnimNotify_N_RightKick_End(class UAnimNotify* Notify);
+
+
+
+	UFUNCTION(BlueprintCallable)
+		void AnimNotify_N_LeftJab_Start(class UAnimNotify* Notify);
+
+
+	UFUNCTION(BlueprintCallable)
+		void AnimNotify_N_LeftJab_End(class UAnimNotify* Notify);
+
+
+	UFUNCTION(BlueprintCallable)
+		void AnimNotify_N_PowerSmash_Start(class UAnimNotify* Notify);
+
+
+	UFUNCTION(BlueprintCallable)
+		void AnimNotify_N_PowerSmash_End(class UAnimNotify* Notify);
 };
