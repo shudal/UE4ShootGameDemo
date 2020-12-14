@@ -612,63 +612,17 @@ void AShootGameCharacter::ServerBeRelife_Implementation()
 }
 
 void AShootGameCharacter::ClientBeRelife_Implementation()
-{
-	/* 
+{ 
 	if (GetMyPlayerState() != nullptr) {
-		GetMyPlayerState()->SetLifeState(ECharLifeType::CLT_ALIVE);
-		//this->GetMesh()->SetAllBodiesSimulatePhysics(false);
-		this->GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), false);
-
-		this->GetMesh()->SetAllBodiesPhysicsBlendWeight(0);
-		//this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	}
-	*/
-	if (GetMyPlayerState() != nullptr) {
-		GetMyPlayerState()->SetLifeState(ECharLifeType::CLT_ALIVE);
-	}
-	this->DetachFromControllerPendingDestroy();
-	this->Destroy();
-	/*
-	if (GetLocalRole() == ROLE_Authority) {
-
-	}
-	else {
-
-		GetWorld()->GetFirstPlayerController()->ServerRestartPlayer();
-	}
-	*/
-	/*
-	UE_LOG(LogClass, Log, TEXT("mmul pose 1"));
-	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
-	{  
-		if ((*Iterator)->IsLocalPlayerController()) {
-			UE_LOG(LogClass, Log, TEXT("mmul pose 0"));
-			UClass* clas = DefaultCharacterClass;
-			if (clas == nullptr) {
-				UE_LOG(LogClass, Log, TEXT("mmul pose 4"));
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "clas - false");
-			}
-			else {
-				//(*Iterator)->ServerRestartPlayer();
-				
-				UE_LOG(LogClass, Log, TEXT("mmul pose 2"));
-				auto y = GetActorTransform();
-				auto x = GetWorld()->SpawnActor<AShootGameCharacter>(clas, y);
-				if (x) {
-
-					(*Iterator)->Possess(x);
-					//this->Destroy();
-					UE_LOG(LogClass, Log, TEXT("mmul pose"));
-
-				}
-				else {
-					UE_LOG(LogClass, Log, TEXT("mmul pose 3"));
-				} 
-			}
-			break;
+		if (GetMyPlayerState()->GetLifeState() == ECharLifeType::CLT_ALIVE) {
+			return;
 		}
-	} 
-	*/
+		else { 
+			GetMyPlayerState()->SetLifeState(ECharLifeType::CLT_ALIVE); 
+			this->DetachFromControllerPendingDestroy();
+			this->Destroy();
+		}
+	}
 }
 
 void AShootGameCharacter::Relife() {
