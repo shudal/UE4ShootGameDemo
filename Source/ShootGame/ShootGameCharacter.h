@@ -142,7 +142,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 		TSubclassOf<AWeapon> MyWeapon;
 
-	void BeginPlay() override;
+	virtual void BeginPlay() override;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rot")
@@ -234,7 +234,9 @@ public:
 	void ClientChangeWeapon_Implementation();
 
 	void UpdateKillCount(int x);
-	void UpdateBlood(float x);
+
+	UFUNCTION(BlueprintCallable, Category = "Shoot")
+	virtual void UpdateBlood(float x);
 
 
 	UFUNCTION(NetMulticast, Reliable)

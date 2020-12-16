@@ -15,11 +15,14 @@ class SHOOTGAME_API AAIC_StickBot : public AAIController
 	GENERATED_BODY()
 	
 private:
-	
+	bool bIsBeingFuck = false;
 protected:
 
 	UFUNCTION(BlueprintCallable)
 		void SetMyTimer();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName BB_KEY_IsBeingFuck;
 
 public: 
 	FTimerHandle TimerHandle_DefaultTimer; 
