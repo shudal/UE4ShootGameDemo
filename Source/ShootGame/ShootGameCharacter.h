@@ -270,12 +270,14 @@ protected:
 		float Melee_LeftTapHarm;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float Melee_PowerSmashHarm;
+
+
+	class AMyPlayerState* GetMyPlayerState();
 private:
 	void HoldWeapon();
 
 	AWeapon* MyWeaponClass = nullptr;
 
-	class AMyPlayerState* GetMyPlayerState();
 	 
 
 	TArray<FVector> LastAttackSocketLocs; 

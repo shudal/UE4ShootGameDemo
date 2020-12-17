@@ -21,6 +21,9 @@ void  AStickBot::UpdateBlood(float x) {
 
 void AStickBot::SetIsBeingFuck(bool x) {
 	bIsBeingFuck = x;
+	if (x) {
+		TimerTickCount = 0;
+	}
 }
 bool AStickBot::IsBeingFuck() {
 	return bIsBeingFuck;

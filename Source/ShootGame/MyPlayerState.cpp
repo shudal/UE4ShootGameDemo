@@ -136,3 +136,8 @@ int32 AMyPlayerState::GetNowWeaponIndex() {
 void AMyPlayerState::SetNowWeaponIndex(int32 x) {
 	NowWeaponIndex = x;
 }
+
+
+void  AMyPlayerState::AddWeapon(FWeaponData wd) {
+	WeaponData.AddUnique(wd);
+}

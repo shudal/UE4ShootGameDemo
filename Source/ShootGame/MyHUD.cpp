@@ -238,7 +238,7 @@ void UMyHUD::SetMyPlayerState() {
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AShootGameCharacter::StaticClass(), FoundActors);
 	for (auto Actor : FoundActors) {
 		AShootGameCharacter* MyChar = Cast<AShootGameCharacter>(Actor);
-		if (MyChar != nullptr && MyChar->IsLocallyControlled()) {
+		if (MyChar != nullptr && MyChar->IsLocallyControlled() && !MyChar->IsAI()) {
 			this->mchar = MyChar;
 
 			AMyPlayerState* getmps = Cast<AMyPlayerState>(MyChar->GetPlayerState());

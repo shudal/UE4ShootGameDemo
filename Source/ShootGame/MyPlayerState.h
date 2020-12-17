@@ -34,9 +34,6 @@ protected:
 	 
 
 	UPROPERTY(EditAnywhere, Replicated)
-	TArray<FWeaponData> WeaponData;
-
-	UPROPERTY(EditAnywhere, Replicated)
 	int32 NowWeaponIndex;
 
 	UPROPERTY(EditAnywhere, Replicated)
@@ -114,4 +111,9 @@ public:
 		void SetNowWeaponIndex(int32 x);
 
 
+
+	UPROPERTY(EditAnywhere, Replicated)
+		TArray<FWeaponData> WeaponData;
+
+	void AddWeapon(FWeaponData wd);
 };
