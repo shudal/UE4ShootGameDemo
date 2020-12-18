@@ -36,6 +36,28 @@ void AShootGameGameMode::BeginPlay() {
 
 
 	bEverSetGameEnded = false;
+
+	if (GetWorld()) {
+		if (SpawnBotInfo.Num() > 0) {
+			FVector SpawnLoc(-230,-1020,226.001602);
+			for (FSpawnedBot b : SpawnBotInfo) {
+				FActorSpawnParameters SpawnInfo;
+				SpawnInfo.Instigator = nullptr;
+				SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				SpawnInfo.OverrideLevel = nullptr;
+
+				UWorld* World = GetWorld();
+				if (World) { 
+					for (int32 i=0; i<b.Count; i++) { 
+						AShootGameCharacter* c = World->SpawnActor<AShootGameCharacter>(b.BotType, SpawnLoc,FRotator::ZeroRotator, SpawnInfo);
+						if (c) {
+							c->SpawnDefaultController();
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 void AShootGameGameMode::DefaultTimer()
@@ -52,5 +74,5 @@ void AShootGameGameMode::DefaultTimer()
 			MyGameState->SetGameStatus(2);
 		}
 		
-	}
+	} 
 }

@@ -6,6 +6,18 @@
 #include "GameFramework/GameModeBase.h"
 #include "ShootGameGameMode.generated.h"
 
+USTRUCT(BlueprintType)
+struct FSpawnedBot
+{
+	GENERATED_BODY()
+
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int32 Count;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<class AShootGameCharacter> BotType;
+};
 
 
 
@@ -31,6 +43,10 @@ protected:
 	FTimerHandle TimerHandle_DefaultTimer;
 
 	void DefaultTimer();
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TArray<FSpawnedBot> SpawnBotInfo;
 };
 
 
