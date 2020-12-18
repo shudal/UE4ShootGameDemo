@@ -25,12 +25,15 @@ void UEQC_CharsContext::ProvideContext(FEnvQueryInstance& QueryInstance, FEnvQue
 				}
 			}
 		}
-	}
-	/*
+	} 
 	if (outList.Num() == 0)
 	{
-		outList.Add(FVector(-10000, 10000, 10000));
-	}
-	*/
+		if (findList.Num() > 0) {
+			outList.Add(findList[0]->GetActorLocation());
+		}
+		else {
+			outList.Add(FVector(-25,-263,423));
+		}
+	} 
 	UEnvQueryItemType_Point::SetContextHelper(ContextData, outList);
 }

@@ -8,6 +8,8 @@ ABotCharacter::ABotCharacter() {
 	FuckLastTime = 15;
 
 	TimerTickCount = 0;
+
+
 }
 void  ABotCharacter::UpdateBlood(float x) {
 	Super::UpdateBlood(x);

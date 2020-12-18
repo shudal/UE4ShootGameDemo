@@ -1,6 +1,9 @@
 #include "FarShootBot.h"
 #include "../MyPlayerState.h"
 
+AFarShootBot::AFarShootBot() {
+	bEverIniWeapon = false;
+}
 void AFarShootBot::BeginPlay() {
 	Super::BeginPlay();
 	 
@@ -15,9 +18,8 @@ void AFarShootBot::BeginPlay() {
 
 void AFarShootBot::DefaultTimer()
 {
-	Super::DefaultTimer();
-
-	if (bEverIniWeapon == false) {  
+	  
+	if (bEverIniWeapon == false) {
 		if (IniWeapon.WeaponStaticClass != nullptr) {
 			if (GetMyPlayerState() != nullptr) {
 				bEverIniWeapon = true;
@@ -31,5 +33,24 @@ void AFarShootBot::DefaultTimer()
 
 			}
 		}
+	} 
+
+	if (MyWeaponClass == nullptr) {
+		if (GetLocalRole() != ROLE_Authority) UE_LOG(LogClass, Log, TEXT("mbot myweaponclass is nullptr"));
+		
+		if (IniWeapon.WeaponStaticClass != nullptr) {
+			if (GetLocalRole() != ROLE_Authority) UE_LOG(LogClass, Log, TEXT("mbot myweaponclass init weaon data is not null"));
+
+			AddWeapon(IniWeapon);
+			ClientChangeWeapon();
+		}
+		else {
+			if (GetLocalRole() != ROLE_Authority) UE_LOG(LogClass, Log, TEXT("mbot myweaponclass init weaon data is null"));
+
+		}
+	}
+	else {
+
+		if (GetLocalRole() != ROLE_Authority) UE_LOG(LogClass, Log, TEXT("mbot myweaponclass is not nullptr"));
 	}
 }

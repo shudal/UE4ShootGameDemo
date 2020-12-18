@@ -262,21 +262,30 @@ bool  AShootGameCharacter::IsMelee() {
 }
 
 void AShootGameCharacter::ServerChangeWeapon_Implementation() {
+
+	UE_LOG(LogClass, Log, TEXT("mbot change weapon m4"));
 	ChangeWeapon();
 }
 void AShootGameCharacter::ClientChangeWeapon_Implementation() {
+
+	UE_LOG(LogClass, Log, TEXT("mbot change weapon 1"));
 	if (MyWeaponClass != nullptr && MyWeaponClass->IsActorInitialized()) {
 		MyWeaponClass->Destroy(); 
 		MyWeaponClass = nullptr;
 	}
-	if (MyPlayerState != nullptr) {
+	if (GetMyPlayerState() != nullptr) {
 
-		auto wds = MyPlayerState->GetWeaponData();
+		UE_LOG(LogClass, Log, TEXT("mbot change weapon 2"));
+		auto wds = GetMyPlayerState()->GetWeaponData();
 		int len = wds.Num();
 		if (len > 0) {
+
+			UE_LOG(LogClass, Log, TEXT("mbot change weapon 3"));
 			int32 i = MyPlayerState->GetNowWeaponIndex();
 			i = (i + 1) % len; 
 			if (i >= 0 && i < wds.Num()) {
+
+				UE_LOG(LogClass, Log, TEXT("mbot change weapon 4"));
 				FWeaponData wd = wds[i];
 
 				UWorld* const World = GetWorld();
@@ -334,12 +343,17 @@ void AShootGameCharacter::UpdateBlood(float x)
 }
 void AShootGameCharacter::ChangeWeapon()
 {
+
+	UE_LOG(LogClass, Log, TEXT("mbot change weapon m1"));
 	if (GetLocalRole() == ROLE_Authority)
 	{
+		UE_LOG(LogClass, Log, TEXT("mbot change weapon m2"));
 		ClientChangeWeapon();
 	}
 	else
 	{
+
+		UE_LOG(LogClass, Log, TEXT("mbot change weapon m3"));
 		ServerChangeWeapon();
 	}
 }
@@ -656,6 +670,30 @@ void AShootGameCharacter::SetCharSkill(ECharSkill x)
 	else if (x == ECharSkill::PowerSmash) { 
 		Melee_SocketNames = Melee_PowerSmashSocketNames;
 		MeleeHarm = Melee_PowerSmashHarm;
+	}
+}
+
+void AShootGameCharacter::AddWeapon(FWeaponData wd)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		ClientAddWeapon(wd);
+	}
+	else
+	{
+		ServerAddWeapon(wd);
+	}
+}
+
+void AShootGameCharacter::ServerAddWeapon_Implementation(FWeaponData wd)
+{
+	AddWeapon(wd);
+}
+
+void AShootGameCharacter::ClientAddWeapon_Implementation(FWeaponData wd)
+{
+	if (GetMyPlayerState() != nullptr) {
+		GetMyPlayerState()->AddWeapon(wd);
 	}
 }
 

@@ -16,8 +16,9 @@ class SHOOTGAME_API AFarShootBot : public ABotCharacter
 	GENERATED_BODY()
 	
 private:
-	bool bEverIniWeapon = false;
+	bool bEverIniWeapon;
 public: 
+	AFarShootBot();
 	virtual void BeginPlay() override;
 
 
@@ -27,5 +28,5 @@ public:
 
 	FTimerHandle TimerHandle_DefaultTimer;
 
-	virtual void DefaultTimer() override;
+	void DefaultTimer();
 };

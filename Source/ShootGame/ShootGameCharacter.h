@@ -256,6 +256,16 @@ public:
 	bool IsMeleeHarm();
 	void SetIsMeleeHarm(bool x);  
 	void SetCharSkill(ECharSkill x);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Shoot")
+		void AddWeapon(FWeaponData wd); 
+	UFUNCTION(Server, Reliable)
+		void ServerAddWeapon(FWeaponData wd);
+	void ServerAddWeapon_Implementation(FWeaponData wd);
+	UFUNCTION(NetMulticast, Reliable)
+		void ClientAddWeapon(FWeaponData wd);
+	void ClientAddWeapon_Implementation(FWeaponData wd);
 protected: 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TArray<FName> Melee_RightKickSocketNames; 
@@ -273,10 +283,11 @@ protected:
 
 
 	class AMyPlayerState* GetMyPlayerState();
+
+	AWeapon* MyWeaponClass = nullptr;
 private:
 	void HoldWeapon();
 
-	AWeapon* MyWeaponClass = nullptr;
 
 	 
 
